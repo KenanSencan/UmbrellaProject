@@ -1,0 +1,6 @@
+[submodule "dep/fltk"]
+	path = dep/fltk
+	url = https://github.com/fltk/fltk.git
+[submodule "dep/SFML"]
+	path = dep/SFML
+	url = https://github.com/SFML/SFML.git
