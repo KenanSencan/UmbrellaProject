@@ -1,6 +1,10 @@
 # Present option to the user how to build the project: FETCHCONTENT, VCPKG, or SOURCEBUILD
-set(BuildType "FETCHCONTENT" CACHE STRING "Specify how to build the project: FetchContent, Vcpkg, or SourceBuild")
+set(BuildType "VCPKG" CACHE STRING "Specify how to build the project: FetchContent, Vcpkg, or SourceBuild")
 set(BuildTypeEnum "FetchContent" "Vcpkg" "SourceBuild")
+
+# Convert elements to upper to be not case sensitive 
+string(TOUPPER ${BuildType} BuildType)
+list(TRANSFORM BuildTypeEnum TOUPPER OUTPUT_VARIABLE UpperBuildTypeEnum)
 
 # Set the toolchain vcpkg file only if not building from source
 if (BuildType STREQUAL "VCPKG")
@@ -8,9 +12,9 @@ if (BuildType STREQUAL "VCPKG")
 endif()
 
 # Initial configurations
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.15)
 project(CMakeSFMLProject)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 
 # Set the build type
 set(VCPKG_BUILD_TYPE Debug)
@@ -22,24 +26,26 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
-add_executable(main src/main.cpp)
+message(STATUS "CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
+# Include recursively every cpp file along with their paths ending with "ArrayMain.cpp" 
+file(GLOB_RECURSE MAIN_FILES "${CMAKE_SOURCE_DIR}/src/**/*main.cpp")
+
+#Handle creating executables for each cpp file ending with "main" 
+foreach (MAIN_FILE ${MAIN_FILES})
+    get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE)
+    add_executable(${EXECUTABLE_NAME} ${MAIN_FILE})
+endforeach ()
+
+#IMP Temporarily adding the main executable for the project. Later on I will delete this. I am right know adding this because library linkers expecting a target
+add_executable(main src/MainMain.cpp)
 
 # Print the variables
-MESSAGE(STATUS ${CMAKE_VERSION})
+message(STATUS "CMake version is: ${CMAKE_VERSION}")
 
 # For now I am doing everything for windows, later on I will consider doing cross platform. Abort if's not Windows
 if (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
     MESSAGE(FATAL_ERROR "Detected OS is not Windows, for now I am doing every stuff in windows")
 endif ()
-
-# Convert elements to upper to be not case sensitive 
-string(TOUPPER ${BuildType} BuildType)
-string(TOUPPER ${BuildTypeEnum} BuildTypeEnum)
-
-foreach (type IN LISTS BuildTypeEnum)
-    string(TOUPPER "${type}" typeUpper)
-    list(APPEND UpperBuildTypeEnum "${typeUpper}")
-endforeach ()
 
 # Print the given or default BuildType
 if (NOT BuildType IN_LIST UpperBuildTypeEnum)
@@ -47,6 +53,8 @@ if (NOT BuildType IN_LIST UpperBuildTypeEnum)
 else ()
     message(STATUS "BuildType is ${BuildType}")
 endif ()
+
+#IMP: Make library binding 3 different ways. I only binding fot the MainMain.cpp 
 
 # Make the dependency library building with FetchContent
 if (BuildType STREQUAL "FETCHCONTENT")
@@ -85,6 +93,6 @@ elseif (BuildType STREQUAL "SOURCEBUILD")
     target_link_libraries(main PRIVATE fltk fltk_gl fltk_forms fltk_images)
 
     add_subdirectory("${CMAKE_SOURCE_DIR}/dep/SFML")
-    target_include_directories(main PRIVATE "${CMAKE_SOURCE_DIR}/dep/SFML/include")
+    target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/dep/SFML/include)
     target_link_libraries(main PRIVATE sfml-audio sfml-graphics sfml-main sfml-network sfml-system sfml-window)
 endif ()
