@@ -54,7 +54,7 @@ else ()
     message(STATUS "BuildType is ${BuildType}")
 endif ()
 
-#IMP: Make library binding 3 different ways. I only binding fot the MainMain.cpp 
+#IMP: Make library binding 3 different ways. I only binding for the MainMain.cpp 
 
 # Make the dependency library building with FetchContent
 if (BuildType STREQUAL "FETCHCONTENT")
