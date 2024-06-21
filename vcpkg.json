@@ -1,6 +1,7 @@
 {
   "dependencies": [
     "sfml",
-    "fltk"
+    "fltk",
+    "benchmark"
   ]
 }
