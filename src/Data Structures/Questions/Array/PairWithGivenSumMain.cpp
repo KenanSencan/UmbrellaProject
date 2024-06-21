@@ -4,43 +4,48 @@
 #include <algorithm>
 #include <iostream>
 
-//Simple but time complexity is: O(n*n) unfortunately
+//Simple but time complexity is: O(n*n)
 bool Solution1(int A[], int size, int x)
 {
+    int ComplexCounter = 0;
     for (int i = 0; i < size - 1; ++i)
     {
+        ComplexCounter++;
         for (int j = i + 1; j < size; ++j)
         {
+            ComplexCounter++;
             if (A[i] + A[j] == x)
             {
+                ComplexCounter++;
+                std::cout << "Complexity counter is: " << ComplexCounter;
                 return true;
             }
+            ComplexCounter++;
         }
+        ComplexCounter++;
     }
+    std::cout << "Complexity counter is: " << ComplexCounter;
     return false;
 }
 
 //Two pointer technique. Time Complexity: O(NlogN), Time complexity for sorting the array
 bool HasArrayTwoCandidates(int* A, const int arrSize, int sum)
 {
-    int l, r;
+    int left = 0, right = arrSize - 1;
 
-    /* Sort the elements */
-    std::sort(A, A + arrSize);
-
-    /* Now look for the two candidates in the sorted array*/
-    l = 0; // first element
-    r = arrSize - 1; //last element
-    while (l < r)
+    //sort the array first
+    std::sort(&A[0], &A[arrSize]);
+    while (left < right)
     {
-        if (A[l] + A[r] == sum)
-            return 1;
-        else if (A[l] + A[r] < sum)
-            l++;
-        else // A[l] + A[r] > sum
-            r--;
-    }
-    return 0;
+        if (A[left] + A[right] == sum)
+            return true;
+
+        if (A[left] + A[right] < sum) //need to go from left -> right
+            left++;
+        else
+            right--;
+    };
+    return false;
 }
 
 int main()
@@ -55,5 +60,5 @@ int main()
     int A2[] = {1, 4, 45, 6, 10, -8};
     int x2 = 16;
     int arrSize = sizeof(A2) / sizeof(A2[0]);
-    HasArrayTwoCandidates(A, arrSize, x2);
+    HasArrayTwoCandidates(A2, arrSize, x2);
 }
