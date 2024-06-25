@@ -1,3 +1,4 @@
+#TODO: Later on I also want to execute all the benchmarks with given BM suffix end of the file name. Also a way to execute arbitrary BM would not be bad
 # Present option to the user how to build the project: FETCHCONTENT, VCPKG, or SOURCEBUILD
 set(BuildType "Vcpkg" CACHE STRING "Specify how to build the project: FetchContent, Vcpkg, or SourceBuild")
 set(BuildTypeEnum "FetchContent" "Vcpkg" "SourceBuild")
@@ -17,12 +18,12 @@ project(CMakeSFMLProject)
 set(CMAKE_CXX_STANDARD 23)
 
 # Set the build type
-set(VCPKG_BUILD_TYPE Debug)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
+set(VCPKG_BUILD_TYPE Release)
 
 # Set benchmark configurations
-set(BENCHMARK_FORMAT "csv")
-set(BENCHMARK_OUT_FORMAT "csv")
+set(BENCHMARK_FORMAT "console")
+set(BENCHMARK_OUT_FORMAT "console")
 set(BENCHMARK_OUT "${CMAKE_BINARY_DIR}/benchmark/hello.txt")
 
 # Make GNU path format to resolve any binary copy paste requirement for SFML
@@ -114,20 +115,17 @@ elseif (BuildType STREQUAL "SOURCEBUILD")
 
     set(BENCHMARK_ENABLE_TESTING OFF)
     add_subdirectory("${CMAKE_SOURCE_DIR}/dep/benchmark")
-    target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/dep/benchmark/include)
+    target_include_directories(MyBenchmark PRIVATE ${CMAKE_SOURCE_DIR}/dep/benchmark/include)
     target_link_libraries(MyBenchmark PRIVATE benchmark::benchmark)
 endif ()
 
-# Add custom target to run benchmark with specific flags
+# Output benchmark to given path 
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/benchmark")
-add_custom_target(run_benchmarks
-    COMMAND MyBenchmark --benchmark_out=${BENCHMARK_OUT} --benchmark_out_format=${BENCHMARK_OUT_FORMAT}
-    DEPENDS MyBenchmark
-    COMMENT "Running benchmarks with output to ${BENCHMARK_OUT} in ${BENCHMARK_OUT_FORMAT} format"
-)
 
-# Add post-build command to run benchmarks automatically without recursion
-add_custom_command(TARGET main POST_BUILD
-        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target run_benchmarks
+# Add post-build command to run benchmarks automatically (only once when the rebuilding from scratch) 
+add_custom_command(TARGET MyBenchmark
+        COMMAND MyBenchmark --benchmark_out=${BENCHMARK_OUT} --benchmark_out_format=${BENCHMARK_OUT_FORMAT}
+        COMMAND echo "Automatically running benchmarks after build"
         COMMENT "Automatically running benchmarks after build"
 )
+#TODO: CREATE A NEW FOLDER (PROBABLY IN SOURCE FOLDER) NAMED BenchmarkResults, every time the txt file needs to be refreshed, first copy to that folder and then refresh yourself

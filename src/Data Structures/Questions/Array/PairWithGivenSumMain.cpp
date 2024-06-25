@@ -7,24 +7,10 @@
 //Simple but time complexity is: O(n*n)
 bool Solution1(int A[], int size, int x)
 {
-    int ComplexCounter = 0;
     for (int i = 0; i < size - 1; ++i)
-    {
-        ComplexCounter++;
         for (int j = i + 1; j < size; ++j)
-        {
-            ComplexCounter++;
             if (A[i] + A[j] == x)
-            {
-                ComplexCounter++;
-                std::cout << "Complexity counter is: " << ComplexCounter;
                 return true;
-            }
-            ComplexCounter++;
-        }
-        ComplexCounter++;
-    }
-    std::cout << "Complexity counter is: " << ComplexCounter;
     return false;
 }
 
