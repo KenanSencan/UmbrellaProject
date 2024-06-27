@@ -1,6 +1,6 @@
 #TODO: Later on I also want to execute all the benchmarks with given BM suffix end of the file name. Also a way to execute arbitrary BM would not be bad
 # Present option to the user how to build the project: FETCHCONTENT, VCPKG, or SOURCEBUILD
-set(BuildType "Vcpkg" CACHE STRING "Specify how to build the project: FetchContent, Vcpkg, or SourceBuild")
+set(BuildType "VCPKG" CACHE STRING "Specify how to build the project: FetchContent, Vcpkg, or SourceBuild")
 set(BuildTypeEnum "FetchContent" "Vcpkg" "SourceBuild")
 
 # Convert elements to upper to be not case sensitive 
@@ -18,8 +18,8 @@ project(CMakeSFMLProject)
 set(CMAKE_CXX_STANDARD 23)
 
 # Set the build type
-set(CMAKE_BUILD_TYPE Release)
-set(VCPKG_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
+set(VCPKG_BUILD_TYPE Debug)
 
 # Set benchmark configurations
 set(BENCHMARK_FORMAT "console")
@@ -43,7 +43,7 @@ foreach (MAIN_FILE ${MAIN_FILES})
 endforeach ()
 
 # Define the benchmark executable
-add_executable(MyBenchmark src/MyBenchmarkMain.cpp)
+add_executable(MyBenchmark src/Benchmarks/MyBenchmarkMain.cpp)
 
 # Temporarily adding the main executable for the project.
 add_executable(main src/MainMain.cpp)
@@ -95,14 +95,24 @@ if (BuildType STREQUAL "FETCHCONTENT")
     add_library(benchmark::benchmark ALIAS benchmark)
     target_link_libraries(MyBenchmark PRIVATE benchmark::benchmark)
 
+    foreach (MAIN_FILE ${MAIN_FILES})
+        get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE)
+        target_link_libraries(${EXECUTABLE_NAME} PRIVATE benchmark::benchmark)
+    endforeach()
+
 # Make the dependency library building with VCPKG either in normal mode or manifest mode
 elseif (BuildType STREQUAL "VCPKG")
-    find_package(FLTK REQUIRED CONFIG)
+    find_package(FLTK CONFIG REQUIRED )
     find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
     find_package(benchmark REQUIRED)
     target_link_libraries(main PRIVATE fltk fltk_gl fltk_forms fltk_images sfml-system sfml-window sfml-graphics sfml-network sfml-audio sfml-main benchmark::benchmark)
     target_link_libraries(MyBenchmark PRIVATE benchmark::benchmark)
 
+    foreach (MAIN_FILE ${MAIN_FILES})
+        get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE)
+        target_link_libraries(${EXECUTABLE_NAME} PRIVATE benchmark::benchmark)
+    endforeach()
+    
 # Make the dependency library building with SourceBuild
 elseif (BuildType STREQUAL "SOURCEBUILD")
     add_subdirectory("${CMAKE_SOURCE_DIR}/dep/fltk")
@@ -117,6 +127,13 @@ elseif (BuildType STREQUAL "SOURCEBUILD")
     add_subdirectory("${CMAKE_SOURCE_DIR}/dep/benchmark")
     target_include_directories(MyBenchmark PRIVATE ${CMAKE_SOURCE_DIR}/dep/benchmark/include)
     target_link_libraries(MyBenchmark PRIVATE benchmark::benchmark)
+
+    foreach (MAIN_FILE ${MAIN_FILES})
+        get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE)
+        target_link_libraries(${EXECUTABLE_NAME} PRIVATE benchmark::benchmark)
+        target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/dep/benchmark/include)
+
+    endforeach()
 endif ()
 
 # Output benchmark to given path 
