@@ -36,14 +36,23 @@ message(STATUS "CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 # Include recursively every cpp file along with their paths ending with "ArrayMain.cpp" 
 file(GLOB_RECURSE MAIN_FILES "${CMAKE_SOURCE_DIR}/src/**/*main.cpp")
 
+#Prepare to get include directories
+file(GLOB_RECURSE ALL_CPP_FILES "${CMAKE_SOURCE_DIR}/src/**/*")
+set(ALL_INCLUDE_DIRS "")
+foreach (MAIN_FILE ${ALL_CPP_FILES})
+    get_filename_component(DIR ${MAIN_FILE} DIRECTORY)
+    list(APPEND ALL_INCLUDE_DIRS ${DIR})
+endforeach ()
+list(REMOVE_DUPLICATES ALL_INCLUDE_DIRS)
+
 # Handle creating executables for each cpp file ending with "main" 
+file(GLOB_RECURSE ALL_HELPER_CLASSES "${CMAKE_SOURCE_DIR}/src/Data Structures/helper/*")
+
 foreach (MAIN_FILE ${MAIN_FILES})
     get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE)
-    add_executable(${EXECUTABLE_NAME} ${MAIN_FILE})
+    add_executable(${EXECUTABLE_NAME} ${MAIN_FILE} ${ALL_HELPER_CLASSES})
+    target_include_directories(${EXECUTABLE_NAME} PRIVATE ${ALL_INCLUDE_DIRS}) #I am not sure to whether delete or keep this line
 endforeach ()
-
-# Define the benchmark executable
-add_executable(MyBenchmark src/Benchmarks/MyBenchmarkMain.cpp)
 
 # Temporarily adding the main executable for the project.
 add_executable(main src/MainMain.cpp)
@@ -106,7 +115,6 @@ elseif (BuildType STREQUAL "VCPKG")
     find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
     find_package(benchmark REQUIRED)
     target_link_libraries(main PRIVATE fltk fltk_gl fltk_forms fltk_images sfml-system sfml-window sfml-graphics sfml-network sfml-audio sfml-main benchmark::benchmark)
-    target_link_libraries(MyBenchmark PRIVATE benchmark::benchmark)
 
     foreach (MAIN_FILE ${MAIN_FILES})
         get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE)
@@ -140,9 +148,10 @@ endif ()
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/benchmark")
 
 # Add post-build command to run benchmarks automatically (only once when the rebuilding from scratch) 
-add_custom_command(TARGET MyBenchmark
-        COMMAND MyBenchmark --benchmark_out=${BENCHMARK_OUT} --benchmark_out_format=${BENCHMARK_OUT_FORMAT}
-        COMMAND echo "Automatically running benchmarks after build"
-        COMMENT "Automatically running benchmarks after build"
-)
+# Since I deleted MyBenchmark target, I temporarily disabled here
+#add_custom_command(TARGET MyBenchmark
+#        COMMAND MyBenchmark --benchmark_out=${BENCHMARK_OUT} --benchmark_out_format=${BENCHMARK_OUT_FORMAT}
+#        COMMAND echo "Automatically running benchmarks after build"
+#        COMMENT "Automatically running benchmarks after build"
+#)
 #TODO: CREATE A NEW FOLDER (PROBABLY IN SOURCE FOLDER) NAMED BenchmarkResults, every time the txt file needs to be refreshed, first copy to that folder and then refresh yourself
