@@ -4,3 +4,6 @@
 [submodule "dep/SFML"]
 	path = dep/SFML
 	url = https://github.com/SFML/SFML.git
+[submodule "dep/benchmark"]
+    path = dep/benchmark
+    url = https://github.com/google/benchmark.git

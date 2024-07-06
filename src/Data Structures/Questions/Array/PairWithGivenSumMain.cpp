@@ -1,76 +1,163 @@
-//Given an array A[] of n numbers and another number x, the task is to check whether or not there exist two elements in A[] whose sum is exactly x. 
-//Input: arr[] = {0, -1, 2, -3, 1}, x= -2             1 + (-3) = -2
+#include <benchmark/benchmark.h>
 #include <algorithm>
-#include <iostream>
+#include <random>
 #include <unordered_set>
+#include "Helper.h"
 
-using namespace std;
-
-//Simple but time complexity is: O(n*n)
-bool Solution1(int A[], int size, int x)
+// Brute-force solution
+void Solution1(const int A[], const int size, const int x, benchmark::State& state)
 {
     for (int i = 0; i < size - 1; ++i)
+    {
         for (int j = i + 1; j < size; ++j)
+        {
             if (A[i] + A[j] == x)
-                return true;
-    return false;
+            {
+                state.counters["ReturnVal"] = 0;
+                return;
+            }
+        }
+    }
+    state.counters["ReturnVal"] = 1;
 }
 
 //Two pointer technique. Time Complexity: O(NlogN), Time complexity for sorting the array
-bool TwoPointer(int* A, const int arrSize, int sum)
+//NOTE: Faster than the binary search !!!!
+void TwoPointer(int* A, int arrSize, int sum, benchmark::State& state) //, benchmark::State& state
 {
-    int left = 0, right = arrSize - 1;
-    //Before anything sort
     std::sort(A, A + arrSize);
+    int left = 0, right = arrSize - 1;
+
     while (right > left || left < right)
     {
-        if (A[left] + A[right] == sum) return true;
+        if (A[left] + A[right] == sum)
+        {
+            state.counters["ReturnVal"] = 0;
+            return;
+        };
         if (A[left] + A[right] > sum) right--;
         else if (A[left] + A[right] < sum) left++;
     }
-    return false;
+    state.counters["ReturnVal"] = 1;
 }
 
-void printPairs(int arr[], int arr_size, int sum)
+void BinarySearch(int* A, int arrSize, int sum, benchmark::State& state)
+{
+    std::sort(A, A + arrSize);
+    int high = arrSize - 1, low = 0;
+
+    while (low < high)
+    {
+        int currentSum = A[low] + A[high];
+
+        if (currentSum == sum)
+        {
+            state.counters["returnVal"] = 0;
+            return;
+        }
+        else if (currentSum < sum)
+            low++;
+        else
+            high--;
+    }
+
+    state.counters["returnVal"] = 1;
+}
+
+
+void Hashing(int arr[], int arr_size, int sum, benchmark::State& state)
 {
     std::unordered_set<int> s;
     for (int i = 0; i < arr_size; i++)
     {
         int temp = sum - arr[i];
-        
+
         if (s.find(temp) != s.end())
         {
             int first = temp;
             int sec = arr[i];
-            int result = first + sec; 
-            std::cout << "Yes" << std::endl;
+            int result = first + sec;
+            state.counters["returnVal"] = 0;
+
             return;
         }
         s.insert(arr[i]);
     }
-    std::cout << "No" << std::endl;
+    state.counters["returnVal"] = 1;
 }
 
+int ReturnRandomElementAddUp(int* A, int size)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(0, size - 1);
+
+    int first = 0;
+    int sec = 0;
+
+    while (first == sec)
+    {
+        first = A[dis(gen)];
+        sec = A[dis(gen)];
+
+        if (first != sec) return first + sec;
+    }
+    return -1;
+}
 
 int main(int argc, char** argv)
 {
-    //Solution 1 
-    int A[] = {0, -1, 2, -3, 1};
-    int x = -2;
-    int size = sizeof(A) / sizeof(A[0]);
-    Solution1(A, size, x);
+    constexpr int size = 50000; 
+    Helper::GenerateRandomValToPath("C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt", size);
+    int A4[size];
+    Helper::ReadFromPathAssignToArr(A4, "C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt");
+    int FindAddUp = ReturnRandomElementAddUp(A4, size);
 
-    //Solution 2
-    int A2[] = {1, 4, 45, 6, 10, -8};
-    int x2 = 16;
-    int arrSize = sizeof(A2) / sizeof(A2[0]);
-    TwoPointer(A2, arrSize, x2);
+    benchmark::Initialize(&argc, argv);
+    benchmark::RegisterBenchmark("Solution1", [size, &A4, FindAddUp](benchmark::State& state)
+    {
+        int* ptr = new int[size];
+        std::copy_n(A4,size,ptr);
+        for (auto _ : state)
+            Solution1(ptr, size, FindAddUp, state);
+        delete ptr;
+    })->Unit(benchmark::kMillisecond);
+    benchmark::RegisterBenchmark("TwoPointer", [size, &A4, FindAddUp](benchmark::State& state)
+    {
+        int* ptr = new int[size];
+        std::copy_n(A4,size,ptr);
+        for (auto _ : state)
+            TwoPointer(ptr, size, FindAddUp, state);
+        delete ptr;
+    })->Unit(benchmark::kMillisecond);
 
-    //Solution 3
-    int A3[] = { 1, 4, 45, 6, 10, 8 };
-    const int n = 53;
-    const int arr_size = sizeof(A3) / sizeof(A[0]);
+    benchmark::RegisterBenchmark("BinarySearch", [size, &A4, FindAddUp](benchmark::State& state)
+    {
+        int* ptr = new int[size];
+        std::copy_n(A4,size,ptr);
+        for (auto _ : state)
+            BinarySearch(ptr, size, FindAddUp, state);
+        delete ptr;
+    })->Unit(benchmark::kMillisecond);
 
-    // Function calling
-    printPairs(A3, arr_size, n);
+    benchmark::RegisterBenchmark("Hashing", [size, &A4, FindAddUp](benchmark::State& state)
+    {
+        int* ptr = new int[size];
+        std::copy_n(A4,size,ptr);
+        for (auto _ : state)
+            Hashing(ptr, size, FindAddUp, state);
+        delete ptr;
+    })->Unit(benchmark::kMillisecond);
+    
+    benchmark::RunSpecifiedBenchmarks();
+    benchmark::Shutdown();
 }
+
+// -----------------------------------------------------------------------
+// Benchmark             Time             CPU   Iterations UserCounters...
+// -----------------------------------------------------------------------
+// Solution1          8.56 ms         6.84 ms          112 ReturnVal=0
+// TwoPointer        0.037 ms        0.027 ms        29867 ReturnVal=0
+// BinarySearch      0.040 ms        0.032 ms        23579 returnVal=0
+// Hashing           0.386 ms        0.298 ms         2987 returnVal=0
+
