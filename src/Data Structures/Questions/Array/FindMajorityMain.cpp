@@ -72,7 +72,7 @@ void Hashmap(const int Arr[], const int ArrSize, benchmark::State& state)
 
 //The algorithm BoyerMoore
 //O(N) Time O(1) Auxilary 
-void BoyerMooreMethod(const int Arr[], int size, benchmark::State& state)
+void BoyerMooreMethod(const int Arr[], const int size, benchmark::State& state)
 {
     int maj_index = 0, count = 1;
     for (int i = 1; i < size; i++)
@@ -103,8 +103,6 @@ void BoyerMooreMethod(const int Arr[], int size, benchmark::State& state)
 
 //There's Binary search tree solution for this question but since I don't have literally any knowledge on binary trees, I will skip this and come back when I learned. Here's the link for BS and problem's link
 //https://www.geeksforgeeks.org/binary-search-tree-data-structure/
-
-
 
 int main(int argc, char** argv)
 {
