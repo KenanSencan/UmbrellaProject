@@ -68,9 +68,9 @@ int main(int argc, char** argv)
 {
     //Set up
     constexpr int size = 1000;
-    Helper::GenerateRandomValToPath("C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt", size);
+    Helper::WriteRandomValToPath("C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt", size);
     int originalArray[size];
-    Helper::ReadFromPathAssignToArr(originalArray, "C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt");
+    Helper::ReadFromPathAssignToArr(originalArray, "C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt",size);
     int length = sizeof(originalArray) / sizeof(originalArray[0]);
 
     benchmark::Initialize(&argc, argv);

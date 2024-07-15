@@ -1,5 +1,4 @@
 #include <iostream>
-#include <valarray>
 #include <vector>
 
 int main()

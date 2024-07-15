@@ -77,9 +77,9 @@ void printLeaders3(int arr[], int size, benchmark::State& state)
 int main(int argc, char** argv)
 {
     constexpr int size = 50000;
-    Helper::GenerateRandomValToPath("C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt", size);
+    Helper::WriteRandomValToPath("C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt", size);
     int arr[size];
-    Helper::ReadFromPathAssignToArr(arr, "C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt");
+    Helper::ReadFromPathAssignToArr(arr, "C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt", size);
 
     benchmark::Initialize(&argc, argv);
 

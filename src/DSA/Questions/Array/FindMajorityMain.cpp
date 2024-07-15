@@ -107,11 +107,11 @@ void BoyerMooreMethod(const int Arr[], const int size, benchmark::State& state)
 int main(int argc, char** argv)
 {
     // int Arr[7] = {4, 4, 2, 4, 2, 4, 4};
-
+    
     constexpr int size = 10000;
-    Helper::GenerateRandomValToPath("C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt", size);
+    Helper::WriteRandomValToPath("C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt", size);
     int arr[size];
-    Helper::ReadFromPathAssignToArr(arr, "C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt");
+    Helper::ReadFromPathAssignToArr(arr, "C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt", size);
 
     benchmark::Initialize(&argc, argv);
 

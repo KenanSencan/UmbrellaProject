@@ -1,12 +1,11 @@
-// C++ program to implement delete operation in a
-// unsorted array
+// C++ program to implement delete operation in an unsorted array
 #include <iostream>
 using namespace std;
 
 // To search a key to be deleted
 int findElement(int arr[], int size, int key);
 
-// Function to delete an element
+// From Delete elemnent pos -> last index, just make "i = i+1" and last index is empty.  
 int deleteElement(int arr[], int size, int key)
 {
     // Find position of element to be deleted
@@ -22,6 +21,7 @@ int deleteElement(int arr[], int size, int key)
     for (int i = pos; i < size - 1; i++)
         arr[i] = arr[i + 1];
 
+    arr[size-1] = 0xfdfdfdfd;
     return size - 1;
 }
 
@@ -38,15 +38,14 @@ int findElement(int arr[], int size, int key)
 // Driver's code
 int main()
 {
-    int arr[] = {10, 50, 30, 40, 20};
-
-    int size = sizeof(arr) / sizeof(arr[0]);
+    int* arr = new int[5]{10, 50, 30, 40, 20};
+    int size = 5;
+    
     int key = 30;
 
     cout << "Array before deletion\n";
     for (int i = 0; i < size; i++)
         cout << arr[i] << " ";
-
 
     // Function call
     size = deleteElement(arr, size, key);
@@ -55,5 +54,6 @@ int main()
     for (int i = 0; i < size; i++)
         cout << arr[i] << " ";
 
+    delete[] arr;
     return 0;
 }

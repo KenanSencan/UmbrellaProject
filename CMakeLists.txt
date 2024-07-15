@@ -1,15 +1,19 @@
 #TODO: Later on I also want to execute all the benchmarks with given BM suffix end of the file name. Also a way to execute arbitrary BM would not be bad
 # Present option to the user how to build the project: FETCHCONTENT, VCPKG, or SOURCEBUILD
-set(BuildType "VCPKG" CACHE STRING "Specify how to build the project: FetchContent, Vcpkg, or SourceBuild")
+set(BuildType "SourceBuild" CACHE STRING "Specify how to build the project: FetchContent, Vcpkg, or SourceBuild")
 set(BuildTypeEnum "FetchContent" "Vcpkg" "SourceBuild")
 
 # Convert elements to upper to be not case sensitive 
 string(TOUPPER ${BuildType} BuildType)
 list(TRANSFORM BuildTypeEnum TOUPPER OUTPUT_VARIABLE UpperBuildTypeEnum)
-
+ 
 # Set the toolchain vcpkg file only if not building from source
 if (BuildType STREQUAL "VCPKG")
-    set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake")
+    if (NOT DEFINED ENV{VCPKG_CMAKE})
+        message(FATAL_ERROR "VCPKG_CMAKE environment variable is not set. VCPKG_CMAKE should be equal to ..vcpkg/scripts/buildsystems/vcpkg.cmake" )
+    endif ()
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_CMAKE}")
+#    set(CMAKE_TOOLCHAIN_FILE "C:\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake")
 endif ()
 
 # Initial configurations
@@ -60,9 +64,9 @@ add_executable(main src/MainMain.cpp)
 # Print the variables
 message(STATUS "CMake version is: ${CMAKE_VERSION}")
 
-# For now I am doing everything for Windows, later on I will consider doing cross-platform. Abort if it's not Windows
-if (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    message(FATAL_ERROR "Detected OS is not Windows, for now I am doing every stuff in Windows")
+# For now I am doing everything for Windows, later on I will consider doing cross-platform for vcpkg. Abort if it's not Windows
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows" AND BuildType STREQUAL "VCPKG" )
+    message(FATAL_ERROR "Detected OS is not Windows, for now don't use vcpkg without windows. At least I didn't try ")
 endif ()
 
 # Print the given or default BuildType
@@ -102,7 +106,7 @@ if (BuildType STREQUAL "FETCHCONTENT")
     )
     FetchContent_MakeAvailable(googlebenchmark)
     add_library(benchmark::benchmark ALIAS benchmark)
-    target_link_libraries(MyBenchmark PRIVATE benchmark::benchmark)
+#    target_link_libraries(MyBenchmark PRIVATE benchmark::benchmark) #I don't have any idea what is this doing in here? 
 
     foreach (MAIN_FILE ${MAIN_FILES})
         get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE)
@@ -133,8 +137,9 @@ elseif (BuildType STREQUAL "SOURCEBUILD")
 
     set(BENCHMARK_ENABLE_TESTING OFF)
     add_subdirectory("${CMAKE_SOURCE_DIR}/dep/benchmark")
-    target_include_directories(MyBenchmark PRIVATE ${CMAKE_SOURCE_DIR}/dep/benchmark/include)
-    target_link_libraries(MyBenchmark PRIVATE benchmark::benchmark)
+    # I don't have any idea what is this doing in here? 
+#    target_include_directories(MyBenchmark PRIVATE ${CMAKE_SOURCE_DIR}/dep/benchmark/include)
+#    target_link_libraries(MyBenchmark PRIVATE benchmark::benchmark)
 
     foreach (MAIN_FILE ${MAIN_FILES})
         get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE)
@@ -154,4 +159,6 @@ file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/benchmark")
 #        COMMAND echo "Automatically running benchmarks after build"
 #        COMMENT "Automatically running benchmarks after build"
 #)
-#TODO: CREATE A NEW FOLDER (PROBABLY IN SOURCE FOLDER) NAMED BenchmarkResults, every time the txt file needs to be refreshed, first copy to that folder and then refresh yourself
+
+#Here is for other subdirectory targets 
+add_subdirectory(src/DSA/helper/MyVector)
