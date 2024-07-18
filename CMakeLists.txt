@@ -22,8 +22,18 @@ project(CMakeSFMLProject)
 set(CMAKE_CXX_STANDARD 23)
 
 # Set the build type
-set(CMAKE_BUILD_TYPE Debug)
-set(VCPKG_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
+set(VCPKG_BUILD_TYPE Release)
+
+# Set address sanitizer for MSVC and GCC/Clang
+#if (MSVC)
+#    add_compile_options(/fsanitize=address)
+#    add_link_options(/fsanitize=address)
+#else()
+#    add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
+#    add_link_options(-fsanitize=address)
+#endif()
+
 
 # Set benchmark configurations
 set(BENCHMARK_FORMAT "console")
@@ -36,9 +46,25 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
+##MSVC doesn't care case sensitiveness in here, but linux cares
 message(STATUS "CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
-# Include recursively every cpp file along with their paths ending with "ArrayMain.cpp" 
-file(GLOB_RECURSE MAIN_FILES "${CMAKE_SOURCE_DIR}/src/**/*main.cpp")
+file(GLOB_RECURSE LOWERCASE_MAIN_FILES "${CMAKE_SOURCE_DIR}/src/*main.cpp") #Lowercase ending main
+file(GLOB_RECURSE UPPERCASE_MAIN_FILES "${CMAKE_SOURCE_DIR}/src/*Main.cpp") #Uppercase ending Main
+list(APPEND MAIN_FILES ${LOWERCASE_MAIN_FILES} ${UPPERCASE_MAIN_FILES})
+
+# Remove duplicates, if any
+list(REMOVE_DUPLICATES MAIN_FILES)
+
+# Print out the found main files
+message(STATUS "Found MAIN_FILES:")
+foreach (MAIN_FILE ${MAIN_FILES})
+    message(STATUS " - ${MAIN_FILE}")
+endforeach ()
+
+# Check if MAIN_FILES is empty
+if (NOT MAIN_FILES)
+    message(FATAL_ERROR "No main.cpp files found.")
+endif ()
 
 #Prepare to get include directories
 file(GLOB_RECURSE ALL_CPP_FILES "${CMAKE_SOURCE_DIR}/src/**/*")
@@ -49,11 +75,12 @@ foreach (MAIN_FILE ${ALL_CPP_FILES})
 endforeach ()
 list(REMOVE_DUPLICATES ALL_INCLUDE_DIRS)
 
-# Handle creating executables for each cpp file ending with "main" 
 file(GLOB_RECURSE ALL_HELPER_CLASSES "${CMAKE_SOURCE_DIR}/src/Data Structures/helper/*")
 
+# Handle creating executables for each cpp file ending with "main" 
 foreach (MAIN_FILE ${MAIN_FILES})
     get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE)
+    message(STATUS "MAIN_FILE: " ${MAIN_FILE})
     add_executable(${EXECUTABLE_NAME} ${MAIN_FILE} ${ALL_HELPER_CLASSES})
     target_include_directories(${EXECUTABLE_NAME} PRIVATE ${ALL_INCLUDE_DIRS}) #I am not sure to whether delete or keep this line
 endforeach ()

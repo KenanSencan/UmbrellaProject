@@ -66,8 +66,12 @@ void MyVector::Add(int value) {
 
 void MyVector::Insert(const int index, int value)
 {
+    if (index < 0 || index > CurrSize) {
+        throw std::out_of_range("Index is out of range");
+    }
+    
     //First Resize with +1 size. Then From Index -> End move everything to the
-    Resize(CurrSize++);
+    Resize(++CurrSize);
     for (int i = CurrSize-2; i >= index; --i)
     {
         Arr[i + 1] = Arr[i];

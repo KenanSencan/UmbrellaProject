@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include "Helper.h"
+#include <filesystem>
 
 //O(N^2)
 void BruteForce(const int Arr[], const int ArrSize, benchmark::State& state) //,
@@ -106,12 +107,12 @@ void BoyerMooreMethod(const int Arr[], const int size, benchmark::State& state)
 
 int main(int argc, char** argv)
 {
-    // int Arr[7] = {4, 4, 2, 4, 2, 4, 4};
-    
     constexpr int size = 10000;
-    Helper::WriteRandomValToPath("C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt", size);
+    const std::filesystem::path inputPath = std::filesystem::current_path().parent_path() / "src" / "input.txt";
+    std::cout << inputPath.string() << std::endl;
+    Helper::WriteRandomValToPath(inputPath.string(), size);
     int arr[size];
-    Helper::ReadFromPathAssignToArr(arr, "C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt", size);
+    Helper::ReadFromPathAssignToArr(arr, inputPath.string(), size);
 
     benchmark::Initialize(&argc, argv);
 
@@ -145,4 +146,23 @@ int main(int argc, char** argv)
 
     benchmark::RunSpecifiedBenchmarks();
     benchmark::Shutdown();
+
+    //MSVC
+    // ---------------------------------------------------------------------------
+    // Benchmark                 Time             CPU   Iterations UserCounters...
+    // ---------------------------------------------------------------------------
+    // BruteForce             6.18 ms         4.10 ms          236 ReturnVal=1
+    // Hashmap               0.748 ms        0.479 ms         1338 ReturnVal=1
+    // BoyerMooreMethod      0.024 ms        0.015 ms        40727 ReturnVal=1
+
+    //G++
+    // Run on (16 X 3593 MHz CPU s)
+    // Load Average: 0.52, 0.58, 0.59
+    // ---------------------------------------------------------------------------
+    // Benchmark                 Time             CPU   Iterations UserCounters...
+    // ---------------------------------------------------------------------------
+    // BruteForce             6.39 ms         3.70 ms          249 ReturnVal=1
+    // Hashmap               0.641 ms        0.372 ms         1723 ReturnVal=1
+    // BoyerMooreMethod      0.006 ms        0.004 ms       203636 ReturnVal=1
+    
 }
