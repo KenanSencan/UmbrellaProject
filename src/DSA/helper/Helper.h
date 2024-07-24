@@ -4,16 +4,17 @@
 #include <random>
 #include <sstream>
 #include <iostream>
+#include <filesystem>
 
-static std::string TEXTLOC = R"(C:\Users\Selviniah\Desktop\cmake-sfml-project\src\input.txt)";
-
+// static std::string TEXTLOC = R"(C:\Users\Selviniah\Desktop\cmake-sfml-project\src\input.txt)";
+const std::string TEXTLOC = (std::filesystem::current_path().parent_path().parent_path() / "src" / "input.txt").string();
 class Helper
 {
     
 public:
-    static void WriteRandomValToPath(const std::string& filePath, const int count)
+    static void WriteRandomValToPath(const int count)
     {
-        std::ofstream ofs(filePath);
+        std::ofstream ofs(TEXTLOC);
         if (!ofs)
         {
             std::cerr << "couldn't open" << std::endl;
@@ -31,9 +32,9 @@ public:
         ofs.close();
     }
 
-    static bool ReadFromPathAssignToArr(int* arr, const std::string& path, const int size)
+    static bool ReadFromPathAssignToArr(int* arr, const int size)
     {
-        std::ifstream ifs(path);
+        std::ifstream ifs(TEXTLOC);
         if (!ifs)
         {
             std::cerr << "Failed to open file." << std::endl;

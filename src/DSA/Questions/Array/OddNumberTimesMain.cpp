@@ -78,15 +78,7 @@ int main(int argc, char** argv)
     }
     arr[size-1] = 31; //This is the last odd number that will be considered odd
 
-    //write the array to a file
-    std::ofstream ofs("C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt");
-    for (int i = 0; i < size; ++i)
-    {
-        ofs << arr[i] << " ";
-    }
-    ofs.close();
-    Helper::ReadFromPathAssignToArr(arr, "C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt", size);
-
+    Helper::ReadFromPathAssignToArr(arr, size);
     
     benchmark::Initialize(&argc, argv);
     benchmark::RegisterBenchmark("BruteForce", [&arr, &size](benchmark::State& state)

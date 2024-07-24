@@ -110,9 +110,9 @@ int main(int argc, char** argv)
     constexpr int size = 10000;
     const std::filesystem::path inputPath = std::filesystem::current_path().parent_path() / "src" / "input.txt";
     std::cout << inputPath.string() << std::endl;
-    Helper::WriteRandomValToPath(inputPath.string(), size);
+    Helper::WriteRandomValToPath(size);
     int arr[size];
-    Helper::ReadFromPathAssignToArr(arr, inputPath.string(), size);
+    Helper::ReadFromPathAssignToArr(arr, size);
 
     benchmark::Initialize(&argc, argv);
 

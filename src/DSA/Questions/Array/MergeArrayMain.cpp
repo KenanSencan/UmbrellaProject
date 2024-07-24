@@ -11,15 +11,16 @@
 //Just randomly insert random data into the array. Then insert randomly nullptr. Do this for 2 arrays. Then merge scarping nullptr and sort 
 
 // ReSharper disable CppUseAuto
+#include <climits>
 #include <iostream>
 #include "Helper.h"
 //last test
 
 void Prepare(int* Arr1, int* Arr2, const int Size1, const int Size2)
 {
-    Helper::WriteRandomValToPath(TEXTLOC,500);
-    Helper::ReadFromPathAssignToArr(Arr1,TEXTLOC,Size1);
-    Helper::ReadFromPathAssignToArr(Arr2,TEXTLOC, Size2);
+    Helper::WriteRandomValToPath(500);
+    Helper::ReadFromPathAssignToArr(Arr1,Size1);
+    Helper::ReadFromPathAssignToArr(Arr2, Size2);
 
     //Randomly assign half of the array INT_MIN to first array 
     std::random_device rd;

@@ -92,9 +92,9 @@ int ReturnRandomElementAddUp(int *A, int size) {
 
 int main(int argc, char **argv) {
     constexpr int size = 50000;
-    Helper::WriteRandomValToPath("C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt", size);
+    Helper::WriteRandomValToPath(size);
     int A4[size];
-    Helper::ReadFromPathAssignToArr(A4, "C:/Users/Selviniah/Desktop/cmake-sfml-project/src/input.txt", size);
+    Helper::ReadFromPathAssignToArr(A4, size);
     int FindAddUp = ReturnRandomElementAddUp(A4, size);
 
     benchmark::Initialize(&argc, argv);

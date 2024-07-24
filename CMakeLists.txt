@@ -22,17 +22,95 @@ project(CMakeSFMLProject)
 set(CMAKE_CXX_STANDARD 23)
 
 # Set the build type
-set(CMAKE_BUILD_TYPE Release)
 set(VCPKG_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build: Debug or Release")
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
+MESSAGE(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
-# Set address sanitizer for MSVC and GCC/Clang
-#if (MSVC)
-#    add_compile_options(/fsanitize=address)
-#    add_link_options(/fsanitize=address)
-#else()
-#    add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
-#    add_link_options(-fsanitize=address)
-#endif()
+# Enable different sanitizers for debug builds
+# Option to set USE CLANG in Linux
+SET(USE_LINUX_CLANG FALSE CACHE BOOL "Use Linux's clang")
+if (USE_LINUX_CLANG)
+    #If given env variables are defined use them 
+    if (DEFINED ENV{CLANG++_PATH} AND DEFINED ENV{CLANG_PATH})
+        SET(CMAKE_C_COMPILER $ENV{CLANG_PATH})
+        SET(CMAKE_CXX_COMPILER $ENV{CLANG++_PATH})
+        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+    else ()
+        #If not then use the default path in linux
+        SET(CMAKE_C_COMPILER "/usr/bin/clang")
+        SET(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+    endif ()
+endif ()
+SET(USE_G++ FALSE CACHE BOOL "Use G++")
+if (USE_G++)
+    #If given env variables are defined use them 
+    if (DEFINED ENV{G++} AND DEFINED ENV{GCC})
+        SET(CMAKE_C_COMPILER $ENV{G++})
+        SET(CMAKE_CXX_COMPILER $ENV{GCC})
+    else ()
+        #If not then use the default path in linux
+        SET(CMAKE_C_COMPILER "/usr/bin/gcc")
+        SET(CMAKE_CXX_COMPILER "/usr/bin/g++")
+    endif ()
+endif ()
+
+#Function to find the visual studio compiler path. The output path should look like 
+#"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe"
+function(FIND_MSVC_COMPILER)
+    #This path is universal however after from here, the version number folder will differ. So I have to find it manually 
+    set(VS_ROOT "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC")
+    file(GLOB MSVC_VERSIONS "${VS_ROOT}/*")
+    list(SORT "${MSVC_VERSIONS}")
+    foreach (VERSION_PATH ${MSVC_VERSIONS})
+        message(STATUS "Found MSVC Version Directory: ${VERSION_PATH}")
+        if (EXISTS "${VERSION_PATH}/bin/Hostx64/x64/cl.exe")
+            set(MSVC_PATH "${VERSION_PATH}/bin/Hostx64/x64/cl.exe" PARENT_SCOPE)
+            break()
+        endif ()
+    endforeach ()
+endfunction()
+
+# Option to set USE MSVC
+SET(USE_MSVC FALSE CACHE BOOL "Use MSVC")
+if (USE_MSVC)
+    #If given env variables are defined use them 
+    if (DEFINED ENV{CL_PATH})
+        SET(CMAKE_C_COMPILER $ENV{CL_PATH})
+        SET(CMAKE_CXX_COMPILER $ENV{CL_PATH})
+    else ()
+        #If not set as env variable then try to get from the default path 
+        FIND_MSVC_COMPILER()
+        SET(CMAKE_C_COMPILER "${MSVC_PATH}")
+        SET(CMAKE_CXX_COMPILER "${MSVC_PATH}")
+    endif ()
+endif ()
+
+# Option to enable thread sanitizer inspection
+option(INSPECT_THREAD "Enable ThreadSanitizer and disable AddressSanitizer" OFF)
+
+# Enable different sanitizers based on build type
+MESSAGE(STATUS "CURRENT COMPILER IS: ${CMAKE_CXX_COMPILER_ID}")
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    set(SANITIZERS "address,undefined,leak")
+    if (INSPECT_THREAD)
+        set(SANITIZERS "thread,undefined")
+    endif ()
+endif ()
+# Apply sanitizers
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer -g")
+        set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=${SANITIZERS}")
+    elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer")
+        set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=${SANITIZERS}")
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        # MSVC sanitizer configuration (e.g., for AddressSanitizer)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fsanitize=address /Zi /MDd /FS")
+        set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} /fsanitize=address /DEBUG /INCREMENTAL:NO")
+    endif ()
+endif ()
 
 
 # Set benchmark configurations
