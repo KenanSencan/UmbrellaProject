@@ -241,7 +241,7 @@ elseif (BuildType STREQUAL "SOURCEBUILD")
     target_link_libraries(main PRIVATE sfml-audio sfml-graphics sfml-main sfml-network sfml-system sfml-window)
 
     set(BENCHMARK_ENABLE_TESTING OFF)
-    add_subdirectory("${CMAKE_SOURCE_DIR}/dep/benchmark")
+    add_subdirectory("${CMAKE_SOURCE_DIR}/dep/benchmark") 
     # I don't have any idea what is this doing in here? 
 #    target_include_directories(MyBenchmark PRIVATE ${CMAKE_SOURCE_DIR}/dep/benchmark/include)
 #    target_link_libraries(MyBenchmark PRIVATE benchmark::benchmark)
