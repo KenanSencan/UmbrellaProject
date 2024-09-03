@@ -20,8 +20,9 @@ MyVector Sorting::MySorting(MyVector& Vector)
         Vector.RemoveIndex(Vector.GetIndex(MinValue));
         SortedNewVector.Add(MinValue);
     }
-
-    return Vector = SortedNewVector;
+    // Vector = SortedNewVector;
+    
+    return Vector;
 }
 
 void Sorting::SelectionSort(const MyVector& Vector)

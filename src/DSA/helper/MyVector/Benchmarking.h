@@ -7,22 +7,23 @@
 class Benchmarking
 {
 public:
-    static MyVector Setup()
+    static MyVector* Setup()
     {
-        constexpr int size = 10000;
+        constexpr int size = 5;
         Helper::WriteRandomValToPath(size);
 
-        MyVector MyVector;
-        MyVector.AllocateArray(size);
-        int* Arr = MyVector.GetArr();
+        MyVector* TestVector = new MyVector();
+        TestVector->AllocateArray(size);
+        int* Arr = TestVector->GetArr();
         Helper::ReadFromPathAssignToArr(Arr, size);
-        return MyVector;
+        return TestVector;
     }
 
     inline static void AddBenchmarks()
     {
-        MyVector* Vector = new MyVector(Setup());
-
+        MyVector* Vector = Setup();
+        std::cout << "Vector allocated at: " << Vector << std::endl;
+        
         benchmark::RegisterBenchmark("MySorting", [Vector](benchmark::State& state) 
         {  
             MyVector* TestVector = new MyVector();
@@ -32,7 +33,8 @@ public:
              {
                 Sorting::MySorting(*TestVector);
             }
-        })->Unit(benchmark::kMillisecond);
+            delete TestVector;
+        })->Unit(benchmark::kMillisecond)->Iterations(882);
 
         // benchmark::RegisterBenchmark("SelectionSort", [&Vector](benchmark::State& state)
         // {

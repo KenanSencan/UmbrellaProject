@@ -43,6 +43,17 @@ int main(int argc, char** argv) {
 
     std::cout << "\nOriginal Vector after modifying assigned vector:" << std::endl << originalVector;
 
+    //Swapping with Index
+    std::cout << "\nAssigned vector before swapping with 0 and 3:" << std::endl << assignedVector;
+    assignedVector.Swap(0,3);
+    std::cout << "\nAssigned vector After swapping with 0 and 3:" << std::endl << assignedVector;
+    assignedVector.Swap(40,15,false);
+    std::cout << "\nAssigned vector After swapping with 40 and 15 values:" << std::endl << assignedVector;
+
+
+    //Swapping with value
+    // assignedVector.Swap(50,1);
+
     //IMP: Sorting
     originalVector.Add(-15);
     std::cout << "\n Printing before sorting:" << std::endl << originalVector;
@@ -61,8 +72,9 @@ int main(int argc, char** argv) {
     Sorting::BubbleSort(NewSortedArr3);
     std::cout << "\nPrinting after bubble sort " << std::endl << NewSortedArr3;
 
+    
 
-    //Benchmarking
+    ////Benchmarking
     benchmark::Initialize(&argc, argv);
     Benchmarking::AddBenchmarks();
     benchmark::RunSpecifiedBenchmarks();

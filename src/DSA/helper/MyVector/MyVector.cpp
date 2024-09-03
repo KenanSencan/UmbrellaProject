@@ -1,7 +1,9 @@
+// ReSharper disable CppDFAConstantConditions
 #include "MyVector.h"
 #include <iostream>
 #include <stdexcept>
 #include <algorithm> // for std::copy
+
 
 MyVector::MyVector() : Arr(nullptr), CurrSize(0), Capacity(0)
 {
@@ -40,6 +42,27 @@ void MyVector::copyFrom(const MyVector& other)
     std::copy(other.Arr, other.Arr + CurrSize, Arr);
 }
 
+void MyVector::Swap(int First, int Sec, bool IsIndex)
+{
+    int IdxFirst;
+    int IdxSec;
+    
+    if (IsIndex && Bounds(First) && Bounds(Sec))
+    {
+        IdxFirst = First;
+        IdxSec = Sec;
+    }
+    else
+    {
+        IdxFirst = GetIndex(First);
+        IdxSec = GetIndex(Sec);
+    }
+    
+    const int temp = Arr[IdxFirst];
+    Arr[IdxFirst] = (Arr[IdxSec]);
+    Arr[IdxSec] = temp;
+}
+
 void MyVector::Resize(int newCapacity)
 {
     int* tempArr = new int[newCapacity];
@@ -49,7 +72,7 @@ void MyVector::Resize(int newCapacity)
     Capacity = newCapacity;
 }
 
-int MyVector::GetIndex(int value) const
+int MyVector::GetIndex(const int value) const
 {
     for (int i = 0; i < CurrSize; ++i)
     {
@@ -58,15 +81,17 @@ int MyVector::GetIndex(int value) const
             return i;
         }
     }
-    return -1;
+    throw std::out_of_range("Index is not found");
 }
 
-void MyVector::Bounds(int index) const
+bool MyVector::Bounds(const int Index) const
 {
-    if (index < 0 || index >= CurrSize)
+    if (Index < 0 || Index >= CurrSize)
     {
         throw std::out_of_range("Index is out of range");
+        return false;
     }
+    return true;
 }
 
 int MyVector::GetValue(int index) const
