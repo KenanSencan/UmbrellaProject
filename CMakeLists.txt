@@ -37,6 +37,11 @@ SET(USE_LINUX_CLANG FALSE CACHE BOOL "Use Linux's clang")
 SET(USE_G++ FALSE CACHE BOOL "Use G++")
 SET(USE_MSVC FALSE CACHE BOOL "Use MSVC")
 
+# Increment counter
+file(READ "${CMAKE_SOURCE_DIR}/Counter.txt" COUNTER)
+MATH(EXPR COUNTER "${COUNTER}+1")
+file(WRITE "${CMAKE_SOURCE_DIR}/Counter.txt" "${COUNTER}")
+
 if (SPECIFY_CUSTOM_COMPILER_PATHS)
     if (USE_LINUX_CLANG)
         #If given env variables are defined use them 
@@ -78,7 +83,7 @@ if (SPECIFY_CUSTOM_COMPILER_PATHS)
             SET(CMAKE_CXX_COMPILER "${MSVC_PATH}")
         endif ()
     endif ()
-    
+
     #Function to find the visual studio compiler path regardless of different version names. The found output path should look like 
     #"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe"
     function(FIND_MSVC_COMPILER)
@@ -97,8 +102,37 @@ if (SPECIFY_CUSTOM_COMPILER_PATHS)
 endif ()
 
 #Compiler flags 
-if (${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} clang++ -O2 -fprofile-instr-generate")
+set(OFF CACHE STRING "Turn on or off instrumented profiling ONLY FOR CLANG. Off by default")
+set(INSTR_PROFILE ON)
+set(PROFDATA_FOUND OFF)
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
+#Delete here soon
+#if (${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -fprofile-instr-use=${CMAKE_CURRENT_BINARY_DIR}/bin/code.profdata")
+#endif ()
+
+#Step 1: Start instr-generate if desired. After the building configuration is done, below extra profraws will be generated, they will be merged and then the target target will be recompiled with new profile data 
+#TODO: This one works instead of the above one. This is extremely important to learn when space involved in path. STUDY EXTREMELY CLOSELY THIS WITH ABOVE COMMEND
+set(Hello ON)
+if (${CMAKE_CXX_COMPILER_ID} MATCHES Clang AND INSTR_PROFILE)
+
+    if (EXISTS ${CMAKE_BINARY_DIR}/TargetName)
+        # Check if profiling data exists and set flags accordingly
+        file(READ ${CMAKE_BINARY_DIR}/TargetName TARGETNAME)
+        set(PROFDATA_FILE "${CMAKE_BINARY_DIR}/${TARGETNAME}.profdata")
+        set(PROFDATA_FOUND ON)
+        message("Profdata file is found. PCO will be attempted")
+    endif ()
+
+    #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -fprofile-instr-use=\"${CMAKE_CURRENT_BINARY_DIR}/bin/code.profdata\"")
+    if (EXISTS ${PROFDATA_FILE})
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=profile-instr-unprofiled -O2 -fprofile-instr-use=\"${PROFDATA_FILE}\"")
+        message("Profdata is applied. From now on it will build using profdata")
+    else () #If PROFDATA not found, generate 
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=profile-instr-unprofiled -O2 -fprofile-instr-generate=" code-%p.profraw"")
+        message("Profile instruction is generated")
+    endif ()
 endif ()
 
 # Option to enable thread sanitizer inspection
@@ -132,6 +166,8 @@ endif ()
 set(BENCHMARK_FORMAT "console")
 set(BENCHMARK_OUT_FORMAT "console")
 set(BENCHMARK_OUT "${CMAKE_BINARY_DIR}/benchmark/hello.txt")
+set(BENCHMARK_ENABLE_TESTING OFF)
+
 
 # Make GNU path format to resolve any binary copy paste requirement for SFML
 include(GNUInstallDirs)
@@ -173,10 +209,10 @@ foreach (MAIN_FILE ${MAIN_FILES})
     get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE) #Get only the filename, this will be target's and executable's name 
     message(STATUS "Executable: ${EXECUTABLE_NAME} created")
     add_executable(${EXECUTABLE_NAME} ${MAIN_FILE})
-    
+
     #I am not sure this is right way to handle inclusion. There's custom mimic for STL. Standalone executables often using these but I am not really sure how the performance would be affected when the includes get bigger.
-    #TODO:  I need to later on find better and STRICT resolution for here 
-    target_include_directories(${EXECUTABLE_NAME} PRIVATE ${ALL_INCLUDE_DIRS}) 
+    #TODO:  I need to later on find better resolution for here 
+    target_include_directories(${EXECUTABLE_NAME} PRIVATE ${ALL_INCLUDE_DIRS})
 endforeach ()
 
 # Temporarily adding the main executable for the project. Even though this MainMain.cpp is not used for anything, for now SFML only linked to use this target 
@@ -192,7 +228,6 @@ endif ()
 if (NOT BuildType IN_LIST UpperBuildTypeEnum)
     message(FATAL_ERROR "Invalid value for BuildType: ${BuildType}. Allowed values are: ${BuildTypeEnum}")
 endif ()
-
 
 # Make the dependency library building with FetchContent
 if (BuildType STREQUAL "FETCHCONTENT")
@@ -268,18 +303,69 @@ elseif (BuildType STREQUAL "SOURCEBUILD")
     endforeach ()
 endif ()
 
-# Output benchmark to given path 
-#file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/benchmark")
+#TODO: IF INSTR_PROFILE is given, I should with custom command, call it 10 times (change this number with cmake variable) with this "LLVM_PROFILE_FILE="code-%p.profraw" ./code" command 
+#TODO: Then make the merge with llvm-profdata merge -output=code.profdata code-*.profraw
+#TODO: Build it again with clang++ -O2 -fprofile-instr-use=code.profdata code.cc -o code
+if (NOT ${PROFDATA_FOUND})
+    foreach (MAIN_FILE ${MAIN_FILES})
+        get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE) # Get only the filename, this will be target's and executable's name 
 
-# Add post-build command to run benchmarks automatically (only once when the rebuilding from scratch) 
-#add_custom_command(TARGET MyBenchmark
-#        COMMAND MyBenchmark --benchmark_out=${BENCHMARK_OUT} --benchmark_out_format=${BENCHMARK_OUT_FORMAT}
-#        COMMAND echo "Automatically running benchmarks after build"
-#        COMMENT "Automatically running benchmarks after build"
-#)
+        # Step 1: Create a custom command to run profiling
+        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E echo "Running ${EXECUTABLE_NAME} 4 times with different profile files"
+                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                COMMENT "Running ${EXECUTABLE_NAME} executable 4 times for profiling"
+                VERBATIM
+        )
 
-#Here is for other subdirectory targets. I can later 
+        # Step 2: Create a custom command to merge profiling data after profiling has been run
+        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+                COMMAND llvm-profdata merge -output=${EXECUTABLE_NAME}.profdata ";code-*.profraw"
+                COMMENT "Merging all the profiling data for ${EXECUTABLE_NAME}"
+                VERBATIM
+        )
+
+        #Set Profdata to be on because it generated at above command 
+        set(PROFDATA_FOUND ON)
+
+        #When rebuilding with profdata again, .profdata file's name needs to be known. Create a file with the executable name for later use
+        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E echo_append ${EXECUTABLE_NAME} > "${CMAKE_BINARY_DIR}/TargetName"
+                COMMENT "Creating a file with the target executable name"
+                VERBATIM
+        )
+
+        # Condition in CMakeLists.txt for recompiling with profile data
+        add_custom_target(run_cmake_twice ALL
+                COMMAND ${CMAKE_COMMAND} -E env
+                CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                CMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
+                CMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+                ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}
+
+                COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}
+        )
+
+        add_dependencies(run_cmake_twice ${EXECUTABLE_NAME})
+    endforeach ()
+endif ()
+
+#Here is for other subdirectory targets.
 add_subdirectory(src/DSA/helper/MyVector)
 
 #This is for ImportantConcepts 
 add_subdirectory(src/ImportantConcepts)
+
+# Create a custom target to run CMake again
+#if (${PROFDATA_FOUND})
+#    add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+#            COMMAND cmake CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} CMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
+#            CMAKE_C_COMPILER=${CMAKE_C_COMPILER} CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -G "${CMAKE_GENERATOR}"
+#            -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR})
+#endif ()
+
+
