@@ -1,7 +1,7 @@
 # Library dependency has 3 options  FETCHCONTENT, VCPKG, or SOURCEBUILD. Only these 3 option can be given. 
 set(BuildType "SourceBuild" CACHE STRING "Specify how to build the project: FetchContent, Vcpkg, or SourceBuild, by default SourceBuild is given")
 set(BuildTypeEnum "FetchContent" "Vcpkg" "SourceBuild")
-
+        
 # Convert elements to upper to be not case sensitive 
 string(TOUPPER ${BuildType} BuildType)
 list(TRANSFORM BuildTypeEnum TOUPPER OUTPUT_VARIABLE UpperBuildTypeEnum)
@@ -16,6 +16,7 @@ endif ()
 
 # Initial configurations
 cmake_minimum_required(VERSION 3.15)
+
 project(CMakeSFMLProject)
 set(CMAKE_CXX_STANDARD 23)
 
@@ -24,8 +25,9 @@ set(VCPKG_BUILD_TYPE Release)
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build: Debug or Release")
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 
+
 # Print the variables
-MESSAGE(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Library dependency resolution method: ${BuildType}")
 message(STATUS "CMake version is: ${CMAKE_VERSION}")
 
@@ -102,11 +104,10 @@ if (SPECIFY_CUSTOM_COMPILER_PATHS)
 endif ()
 
 #Compiler flags 
-set(OFF CACHE STRING "Turn on or off instrumented profiling ONLY FOR CLANG. Off by default")
-set(INSTR_PROFILE ON)
+set(INSTR_PROFILE ON CACHE STRING "Turn on or off instrumented profiling ONLY FOR CLANG. Off by default")
 set(PROFDATA_FOUND OFF)
 set(CMAKE_VERBOSE_MAKEFILE ON)
-
+file(GLOB PROFDATA_FILE "${CMAKE_BINARY_DIR}/*.profdata")
 #Delete here soon
 #if (${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
 #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -fprofile-instr-use=${CMAKE_CURRENT_BINARY_DIR}/bin/code.profdata")
@@ -114,13 +115,11 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 
 #Step 1: Start instr-generate if desired. After the building configuration is done, below extra profraws will be generated, they will be merged and then the target target will be recompiled with new profile data 
 #TODO: This one works instead of the above one. This is extremely important to learn when space involved in path. STUDY EXTREMELY CLOSELY THIS WITH ABOVE COMMEND
-set(Hello ON)
 if (${CMAKE_CXX_COMPILER_ID} MATCHES Clang AND INSTR_PROFILE)
 
-    if (EXISTS ${CMAKE_BINARY_DIR}/TargetName)
+    if (EXISTS ${PROFDATA_FILE})
         # Check if profiling data exists and set flags accordingly
-        file(READ ${CMAKE_BINARY_DIR}/TargetName TARGETNAME)
-        set(PROFDATA_FILE "${CMAKE_BINARY_DIR}/${TARGETNAME}.profdata")
+        file(GLOB PROF_DATA_FILES "${CMAKE_BINARY_DIR}/*.profdata")
         set(PROFDATA_FOUND ON)
         message("Profdata file is found. PCO will be attempted")
     endif ()
@@ -303,10 +302,13 @@ elseif (BuildType STREQUAL "SOURCEBUILD")
     endforeach ()
 endif ()
 
+message("PROFDATA FOUND: ${PROFDATA_FOUND}")
+
 #TODO: IF INSTR_PROFILE is given, I should with custom command, call it 10 times (change this number with cmake variable) with this "LLVM_PROFILE_FILE="code-%p.profraw" ./code" command 
 #TODO: Then make the merge with llvm-profdata merge -output=code.profdata code-*.profraw
 #TODO: Build it again with clang++ -O2 -fprofile-instr-use=code.profdata code.cc -o code
 if (NOT ${PROFDATA_FOUND})
+    
     foreach (MAIN_FILE ${MAIN_FILES})
         get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE) # Get only the filename, this will be target's and executable's name 
 
@@ -330,35 +332,38 @@ if (NOT ${PROFDATA_FOUND})
 
         #Set Profdata to be on because it generated at above command 
         set(PROFDATA_FOUND ON)
-
-        #When rebuilding with profdata again, .profdata file's name needs to be known. Create a file with the executable name for later use
-        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E echo_append ${EXECUTABLE_NAME} > "${CMAKE_BINARY_DIR}/TargetName"
-                COMMENT "Creating a file with the target executable name"
-                VERBATIM
-        )
-
-        # Condition in CMakeLists.txt for recompiling with profile data
-        add_custom_target(run_cmake_twice ALL
-                COMMAND ${CMAKE_COMMAND} -E env
-                CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                CMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
-                CMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-                CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-                ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}
-
-                COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}
-        )
-
-        add_dependencies(run_cmake_twice ${EXECUTABLE_NAME})
     endforeach ()
 endif ()
+
+# Step 3: Create a file with the target executable name for later use
+
+if (NOT ${PROFDATA_FOUND})
+    add_custom_target(run_cmake_twice ALL
+            COMMAND ${CMAKE_COMMAND} -E env
+            CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            CMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
+            CMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+            CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+            ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}
+
+            COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}
+    )
+
+    foreach (MAIN_FILE ${MAIN_FILES})
+        get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE) # Get only the filename, this will be target's and executable's name 
+
+        add_dependencies(${EXECUTABLE_NAME} run_cmake_twice)
+    endforeach ()    
+endif ()
+
+
 
 #Here is for other subdirectory targets.
 add_subdirectory(src/DSA/helper/MyVector)
 
 #This is for ImportantConcepts 
 add_subdirectory(src/ImportantConcepts)
+message(FLAGS ARE: ${CMAKE_CXX_FLAGS})
 
 # Create a custom target to run CMake again
 #if (${PROFDATA_FOUND})
