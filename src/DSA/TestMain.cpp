@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
         for (auto _: state) {
             Solution1(A, size, x, state);  // Call the solution function with fixed input
         }
-    })->Unit(benchmark::kMillisecond);
+    })->Unit(benchmark::kMillisecond)->Iterations(10000);
 
     benchmark::RunSpecifiedBenchmarks();
     benchmark::Shutdown();
