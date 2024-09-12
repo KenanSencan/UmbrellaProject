@@ -335,20 +335,14 @@ if (NOT ${PROFDATA_FOUND} AND ${INSTR_PROFILE})
         get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE) # Get only the filename, this will be target's and executable's name 
 
         # Step 1: Create a custom command to run profiling
-        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E echo "Running ${EXECUTABLE_NAME} 4 times with different profile files"
-                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                #                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                #                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                #                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                #                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                #                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                #                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                #                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                COMMENT "Running ${EXECUTABLE_NAME} executable 4 times for profiling"
-                VERBATIM
-        )
+        #This is not necessary anymore and doesn't even work anyway. 
+#        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+#                COMMAND ${CMAKE_COMMAND} -E echo "Running ${EXECUTABLE_NAME} 4 times with different profile files"
+#                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+#                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+#                COMMENT "Running ${EXECUTABLE_NAME} executable 4 times for profiling"
+#                VERBATIM
+#        )
 
         #For some reason, it finds more profraw file then it should do IN LINUX ONLY!!!!, so I will manually check and delete if it doesn't exist. 
         set(VALID_PROFRAW_FILES "")
@@ -369,21 +363,23 @@ if (NOT ${PROFDATA_FOUND} AND ${INSTR_PROFILE})
         list(REMOVE_DUPLICATES VALID_PROFRAW_FILES)
 
         # Step 4: Create a custom command to merge profiling data after profiling has been run
-        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-                COMMAND llvm-profdata merge -output=${CMAKE_BINARY_DIR}/${EXECUTABLE_NAME}.profdata ${VALID_PROFRAW_FILES}
-                COMMENT "Merging all valid profiling data for ${EXECUTABLE_NAME}"
-                DEPENDS ${VALID_PROFRAW_FILES}
-                VERBATIM
-        )
+        #It never worked properly anyway I disabled this. 
+#        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+#                COMMAND llvm-profdata merge -output=${CMAKE_BINARY_DIR}/${EXECUTABLE_NAME}.profdata ${VALID_PROFRAW_FILES}
+#                COMMENT "Merging all valid profiling data for ${EXECUTABLE_NAME}"
+#                DEPENDS ${VALID_PROFRAW_FILES}
+#                VERBATIM
+#        )
 
-        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E env
-                CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                CMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
-                CMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-                CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-                ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}
-        )
+        #No point of doing this as well. 
+#        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+#                COMMAND ${CMAKE_COMMAND} -E env
+#                CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+#                CMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
+#                CMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+#                CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+#                ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}
+#        )
 
     endforeach ()
 endif ()
