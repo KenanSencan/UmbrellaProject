@@ -17,9 +17,14 @@ endif ()
 # Initial configurations
 cmake_minimum_required(VERSION 3.15)
 project(CMakeSFMLProject)
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_VERBOSE_MAKEFILE ON)
 
+set(CMAKE_CXX_STANDARD 20)
+
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
+
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Set the build type
 set(VCPKG_BUILD_TYPE Release)
@@ -31,6 +36,12 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Library dependency resolution method: ${BuildType}")
 message(STATUS "CMake version is: ${CMAKE_VERSION}")
+message(STATUS "BINARY DIR: ${CMAKE_BINARY_DIR}")
+
+set(HAVE_STD_REGEX ON)
+
+set(RUN_HAVE_STD_REGEX 1)
+
 
 # Option to USE CLANG, MSVC, or G++
 set(SPECIFY_CUSTOM_COMPILER_PATHS OFF CACHE STRING "When changing the compilers often, instead of giving user's own compiler paths every time, if necessary environment variables are set it will be
@@ -39,6 +50,9 @@ easier to switch the compilers with changing the given cache variables ON or OFF
 SET(USE_LINUX_CLANG FALSE CACHE BOOL "Use Linux's clang")
 SET(USE_G++ FALSE CACHE BOOL "Use G++")
 SET(USE_MSVC FALSE CACHE BOOL "Use MSVC")
+
+# Disable compiler flag tests
+set(CMAKE_REQUIRED_FLAGS "")
 
 # Increment counter. This used to be test to make sure automatically cmake runs expected amount of time repeatedly to apply instrumented profile optimization
 #file(READ "${CMAKE_SOURCE_DIR}/Counter.txt" COUNTER)
@@ -104,6 +118,11 @@ if (SPECIFY_CUSTOM_COMPILER_PATHS)
     endfunction()
 endif ()
 
+
+#Remove this shit later on
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow -Wconversion -Wfloat-equal -Wold-style-cast")
+
+
 #Compiler options:
 set(INSTR_PROFILE OFF CACHE STRING "Turn on or off instrumented profiling ONLY FOR CLANG. Off by default")
 set(PROFDATA_FOUND OFF)
@@ -121,11 +140,19 @@ if (${CMAKE_CXX_COMPILER_ID} MATCHES Clang AND INSTR_PROFILE)
 
     #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -fprofile-instr-use=\"${CMAKE_CURRENT_BINARY_DIR}/bin/code.profdata\"")
     if (EXISTS ${PROFDATA_FILE})
+
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=profile-instr-unprofiled -O2 -fprofile-instr-use=\"${PROFDATA_FILE}\"")
+
         message("Profdata is applied. From now on it will build using profdata")
+
     else () #If PROFDATA not found, generate 
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=profile-instr-unprofiled -O2 -fprofile-instr-generate=" code-%p.profraw"")
+
+        # I changed here here's the most important part to take a look up later on
+
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=profile-instr-unprofiled -O2 -fprofile-instr-generate=code-%p.profraw")
+
         message("Profile instruction is generated")
+
     endif ()
 endif ()
 
@@ -161,6 +188,7 @@ set(BENCHMARK_FORMAT "console")
 set(BENCHMARK_OUT_FORMAT "console")
 set(BENCHMARK_OUT "${CMAKE_BINARY_DIR}/benchmark/hello.txt")
 set(BENCHMARK_ENABLE_TESTING OFF)
+
 
 # Make GNU path format to resolve any binary copy paste requirement for SFML
 include(GNUInstallDirs)
@@ -297,6 +325,9 @@ elseif (BuildType STREQUAL "SOURCEBUILD")
 endif ()
 
 message("PROFDATA FOUND: ${PROFDATA_FOUND}")
+message("INSTR_PROFILE: ${INSTR_PROFILE}")
+message(FLAGS ARE: ${CMAKE_CXX_FLAGS})
+
 
 if (NOT ${PROFDATA_FOUND} AND ${INSTR_PROFILE})
 
@@ -308,25 +339,43 @@ if (NOT ${PROFDATA_FOUND} AND ${INSTR_PROFILE})
                 COMMAND ${CMAKE_COMMAND} -E echo "Running ${EXECUTABLE_NAME} 4 times with different profile files"
                 COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
                 COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                #                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                #                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                #                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                #                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                #                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                #                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                #                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
                 COMMENT "Running ${EXECUTABLE_NAME} executable 4 times for profiling"
                 VERBATIM
         )
 
-        # Step 2: Create a custom command to merge profiling data after profiling has been run
+        #For some reason, it finds more profraw file then it should do IN LINUX ONLY!!!!, so I will manually check and delete if it doesn't exist. 
+        set(VALID_PROFRAW_FILES "")
+        #I will explain here shortly
+        set(PROF_FILE_MIN_SIZE 2000)
+        file(GLOB PROFRAW_FILES "${CMAKE_BINARY_DIR}/code-*.profraw")
+
+        foreach (PROFRAW_FILE ${PROFRAW_FILES})
+            file(SIZE ${PROFRAW_FILE} FILE_SIZE)
+
+            if (${FILE_SIZE} GREATER ${PROF_FILE_MIN_SIZE})
+                message(STATUS "VALID_PROFRAW_FILES: ${VALID_PROFRAW_FILES}")
+                list(APPEND VALID_PROFRAW_FILES ${PROFRAW_FILE})
+            endif ()
+        endforeach ()
+
+        # Step 2: Remove duplicates if any
+        list(REMOVE_DUPLICATES VALID_PROFRAW_FILES)
+
+        # Step 4: Create a custom command to merge profiling data after profiling has been run
         add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-                COMMAND llvm-profdata merge -output=${EXECUTABLE_NAME}.profdata ";code-*.profraw"
-                COMMENT "Merging all the profiling data for ${EXECUTABLE_NAME}"
+                COMMAND llvm-profdata merge -output=${CMAKE_BINARY_DIR}/${EXECUTABLE_NAME}.profdata ${VALID_PROFRAW_FILES}
+                COMMENT "Merging all valid profiling data for ${EXECUTABLE_NAME}"
+                DEPENDS ${VALID_PROFRAW_FILES}
                 VERBATIM
         )
-        set(PROFDATA_FOUND ON)
-        
+
         add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E env
                 CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -335,7 +384,7 @@ if (NOT ${PROFDATA_FOUND} AND ${INSTR_PROFILE})
                 CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                 ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}
         )
-        
+
     endforeach ()
 endif ()
 
@@ -344,8 +393,7 @@ add_subdirectory(src/DSA/helper/MyVector)
 
 #This is for ImportantConcepts 
 add_subdirectory(src/ImportantConcepts)
+
 message(FLAGS ARE: ${CMAKE_CXX_FLAGS})
-
-
 
 
