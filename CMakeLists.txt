@@ -126,14 +126,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow -Wconversion -Wfloat-equal -Wol
 #Compiler options:
 set(INSTR_PROFILE OFF CACHE STRING "Turn on or off instrumented profiling ONLY FOR CLANG. Off by default")
 set(PROFDATA_FOUND OFF)
-file(GLOB PROFDATA_FILE "${CMAKE_BINARY_DIR}/*.profdata")
+file(GLOB PROFDATA_FILE "${CMAKE_BINARY_DIR}/bin/*.profdata")
 
 #Step 1: Start instr-generate if desired. After the building configuration is done, below extra profraws will be generated, they will be merged and then the target will be recompiled with new profile data 
 if (${CMAKE_CXX_COMPILER_ID} MATCHES Clang AND INSTR_PROFILE)
 
+    #EXTREMELY IMPORTANT to make sure if a file added in bin folder, force cmake to recompile. It will be fast since nothing changed and cmake incremental building
+    file(GLOB_RECURSE MYFILE LIST_DIRECTORIES true CONFIGURE_DEPENDS ${CMAKE_BINARY_DIR}/bin/*)
+
     if (EXISTS ${PROFDATA_FILE})
         # Check if profiling data exists and set flags accordingly
-        file(GLOB PROF_DATA_FILES "${CMAKE_BINARY_DIR}/*.profdata")
         set(PROFDATA_FOUND ON)
         message("Profdata file is found. PCO will be attempted")
     endif ()
@@ -149,8 +151,10 @@ if (${CMAKE_CXX_COMPILER_ID} MATCHES Clang AND INSTR_PROFILE)
 
         # I changed here here's the most important part to take a look up later on
 
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=profile-instr-unprofiled -O2 -fprofile-instr-generate=code-%p.profraw")
-
+        set(PROFILE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+        add_compile_options(-Wno-error=profile-instr-unprofiled
+                -O2
+                "-fprofile-instr-generate=${PROFILE_OUTPUT_PATH}/code-%p.profraw")
         message("Profile instruction is generated")
 
     endif ()
@@ -158,18 +162,21 @@ endif ()
 
 # Option to enable thread sanitizer inspection
 option(INSPECT_THREAD "Enable ThreadSanitizer and disable AddressSanitizer" OFF)
+option(APPLY_SANITIZERS "Enable or disable to apply sanitizers when in debug mode and using GCC/CLANG" OFF)
 
-# Enable different sanitizers based on the compiler
+# Enable different sanitizers based on the compiler. "leak" removed !!!
 MESSAGE(STATUS "CURRENT COMPILER IS: ${CMAKE_CXX_COMPILER_ID}")
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    set(SANITIZERS "address,undefined,leak")
+    set(SANITIZERS "address,undefined") ##"leak" removed from here later on when I am studying sanitizer in depth I will come back here
     if (INSPECT_THREAD)
         set(SANITIZERS "thread,undefined")
     endif ()
 endif ()
+
+
 # Apply sanitizers
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND APPLY_SANITIZERS)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=${SANITIZERS} -fno-omit-frame-pointer -g")
         set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=${SANITIZERS}")
     elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -328,59 +335,64 @@ message("PROFDATA FOUND: ${PROFDATA_FOUND}")
 message("INSTR_PROFILE: ${INSTR_PROFILE}")
 message(FLAGS ARE: ${CMAKE_CXX_FLAGS})
 
+file(GLOB PROFRAW_FILES ${CMAKE_BINARY_DIR}/bin/*.profraw)
+if (NOT ${PROFDATA_FOUND} AND ${INSTR_PROFILE} AND PROFRAW_FILES)
 
-if (NOT ${PROFDATA_FOUND} AND ${INSTR_PROFILE})
+    set(PROFDATA_FOUND ON)
 
     foreach (MAIN_FILE ${MAIN_FILES})
-        get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE) # Get only the filename, this will be target's and executable's name 
-
-        # Step 1: Create a custom command to run profiling
-        #This is not necessary anymore and doesn't even work anyway. 
-#        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-#                COMMAND ${CMAKE_COMMAND} -E echo "Running ${EXECUTABLE_NAME} 4 times with different profile files"
-#                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-#                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
-#                COMMENT "Running ${EXECUTABLE_NAME} executable 4 times for profiling"
-#                VERBATIM
-#        )
-
-        #For some reason, it finds more profraw file then it should do IN LINUX ONLY!!!!, so I will manually check and delete if it doesn't exist. 
-        set(VALID_PROFRAW_FILES "")
-        #I will explain here shortly
-        set(PROF_FILE_MIN_SIZE 2000)
-        file(GLOB PROFRAW_FILES "${CMAKE_BINARY_DIR}/code-*.profraw")
-
-        foreach (PROFRAW_FILE ${PROFRAW_FILES})
-            file(SIZE ${PROFRAW_FILE} FILE_SIZE)
-
-            if (${FILE_SIZE} GREATER ${PROF_FILE_MIN_SIZE})
-                message(STATUS "VALID_PROFRAW_FILES: ${VALID_PROFRAW_FILES}")
-                list(APPEND VALID_PROFRAW_FILES ${PROFRAW_FILE})
-            endif ()
-        endforeach ()
-
-        # Step 2: Remove duplicates if any
-        list(REMOVE_DUPLICATES VALID_PROFRAW_FILES)
+        get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE) # Get only the filename, this will be target's and executable's name
 
         # Step 4: Create a custom command to merge profiling data after profiling has been run
-        #It never worked properly anyway I disabled this. 
-#        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-#                COMMAND llvm-profdata merge -output=${CMAKE_BINARY_DIR}/${EXECUTABLE_NAME}.profdata ${VALID_PROFRAW_FILES}
-#                COMMENT "Merging all valid profiling data for ${EXECUTABLE_NAME}"
-#                DEPENDS ${VALID_PROFRAW_FILES}
-#                VERBATIM
-#        )
+        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+                COMMAND llvm-profdata merge -output=${CMAKE_BINARY_DIR}/bin/${EXECUTABLE_NAME}.profdata ${PROFRAW_FILES}
+                COMMENT "Merging all valid profiling data for ${EXECUTABLE_NAME}"
+                DEPENDS ${PROFRAW_FILES}
+                VERBATIM
+        )
+    endforeach ()
+endif ()
 
-        #No point of doing this as well. 
-#        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-#                COMMAND ${CMAKE_COMMAND} -E env
-#                CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-#                CMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
-#                CMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-#                CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-#                ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}
-#        )
 
+#instead of manually invoking to recompilation after executable executed, this will be automatically execute to generate profraw files
+if (${INSTR_PROFILE} AND NOT ${PROFDATA_FOUND})
+    
+    
+    #profraw file generation is corrupted if command strings are given automatic. I don't know why but I disabled. For now number of times execution must be manually given like before  
+#    set(SET_PROFRAW_COUNT 5)
+
+#    math(EXPR SET_PROFRAW_COUNT "${SET_PROFRAW_COUNT} -1") ##This is required because foreach executing 0-5 5th inclusive
+#    set(COMMAND_LIST "")
+#    foreach (i RANGE ${SET_PROFRAW_COUNT})
+#        LIST(APPEND COMMAND_LIST
+#                COMMAND ${CMAKE_COMMAND} -E echo " ${i}. Execution of: ${EXECUTABLE_NAME}"
+#                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+#                COMMAND ${CMAKE_COMMAND} -E sleep 1)
+#    endforeach ()
+#
+#    add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD ${COMMAND_LIST}
+
+
+            foreach (MAIN_FILE ${MAIN_FILES})
+        get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE) # Get only the filename, this will be target's and executable's name
+#        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD ${COMMAND_LIST})
+        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD 
+                COMMAND ${CMAKE_COMMAND} -E echo " 2. Execution of: ${EXECUTABLE_NAME}"
+                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                COMMAND ${CMAKE_COMMAND} -E sleep 1
+                
+                COMMAND ${CMAKE_COMMAND} -E echo " 2. Execution of: ${EXECUTABLE_NAME}"
+                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                COMMAND ${CMAKE_COMMAND} -E sleep 1
+                
+                COMMAND ${CMAKE_COMMAND} -E echo " 3. Execution of: ${EXECUTABLE_NAME}"
+                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                COMMAND ${CMAKE_COMMAND} -E sleep 1
+                
+                COMMAND ${CMAKE_COMMAND} -E echo " 4. Execution of: ${EXECUTABLE_NAME}"
+                COMMAND $<TARGET_FILE:${EXECUTABLE_NAME}>
+                COMMAND ${CMAKE_COMMAND} -E sleep 1
+        )
     endforeach ()
 endif ()
 
