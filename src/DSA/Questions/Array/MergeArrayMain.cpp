@@ -11,6 +11,7 @@
 //Just randomly insert random data into the array. Then insert randomly nullptr. Do this for 2 arrays. Then merge scarping nullptr and sort 
 
 // ReSharper disable CppUseAuto
+#include <algorithm>
 #include <climits>
 #include <iostream>
 #include "Helper.h"

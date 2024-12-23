@@ -6,6 +6,7 @@
 // Output: 4
 // Explanation: Here the size of the array is 4, so the range will be [1, 5]. The missing number between 1 to 5 is 4
 
+#include <algorithm>
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
