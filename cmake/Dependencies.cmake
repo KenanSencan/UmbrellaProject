@@ -36,6 +36,11 @@ foreach (MAIN_FILE ${MAIN_FILES})
     #I am not sure this is right way to handle inclusion. There's custom mimic for STL. Standalone executables often using these but I am not really sure how the performance would be affected when the includes get bigger.
     #TODO:  I need to later on find better resolution for here 
     target_include_directories(${EXECUTABLE_NAME} PRIVATE ${ALL_INCLUDE_DIRS})
+    
+    #IF custom STL desired, include and link.
+    if (${CUSTOM_STD} STREQUAL "ON")
+        target_link_libraries(${EXECUTABLE_NAME} PRIVATE c++ c++abi unwind)
+    endif ()
 endforeach ()
 
 # For now I am doing everything for Windows, later on I will consider doing cross-platform for vcpkg. Though it supposed to work cross platform 

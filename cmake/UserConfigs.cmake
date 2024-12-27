@@ -15,3 +15,23 @@ if (BuildType STREQUAL "VCPKG")
     endif ()
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_CMAKE}")
 endif ()
+
+# Use custom compiled libc++ to be able to step into libc++ implementation if desired
+SET(CUSTOM_STD OFF CACHE BOOL "If custom STD is desired, enable this")
+if (${CUSTOM_STD} STREQUAL "ON")
+    SET(CUSTOM_STD_RELEASE ON CACHE BOOL "IF CUSTOM_STD Desired. Configure this option to use release or debug mode.")
+    if (${CUSTOM_STD_RELEASE} STREQUAL "ON")
+        set(STD_INCLUDE_DIR "/home/selviniah/Documents/llvm-project/build/include/c++/v1")
+        set(STD_LIB_DIR "/home/selviniah/Documents/llvm-project/build/lib")
+    else ()
+        set(STD_INCLUDE_DIR "/home/selviniah/Documents/llvm-project/_InstallLibcxxDebug/include/c++/v1")
+        set(STD_LIB_DIR "/home/selviniah/Documents/llvm-project/_InstallLibcxxDebug/lib")
+    endif ()
+
+
+    add_compile_options(-Wshadow -Wall -Wextra -Wpedantic -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-newline-eof
+            -nostdinc++ -Wno-reserved-macro-identifier) # -fno-elide-constructors
+
+    link_directories(${STD_LIB_DIR})
+    include_directories(${STD_INCLUDE_DIR})
+endif ()
