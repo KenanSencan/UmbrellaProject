@@ -5,6 +5,15 @@ This project is only for experimenting cmake, benchmarking optimization for diff
 
 # Build the project
 1. ```cd CMakeSFMLProject && mkdir build && cd build```
-2. ```cmake -DCMAKE_BUILD_TYPE=Release -G Ninja -S .. -B .``` 
+2. ```cmake -DCMAKE_BUILD_TYPE=Release -G Ninja  -S .. -B .``` 
 **Cmake** will print all the targets designated as **executable.**
-3. ```cmake --build . --target BenchmarkTestMain ``` Choose other executables based on the printed executable names
+3. ```cmake --build . ``` will build every executable. If specific target desired. Choose one from printed executable names during configuration execution.
+
+# Mine 
+```less
+/usr/bin/cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_MAKE_PROGRAM=/usr/bin/ninja -DCMAKE_C_COMPILER=/usr/bin/clang-19 -DCMAKE_CXX_COMPILER=/usr/bin/clang++-19 -G Ninja -S /home/selviniah/CLionProjects/CMakeSFMLProject -B /home/selviniah/CLionProjects/CMakeSFMLProject/build
+```
+
+```less
+/usr/bin/cmake --build . --target StringMain -j 14
+```

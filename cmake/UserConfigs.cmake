@@ -16,21 +16,38 @@ if (BuildType STREQUAL "VCPKG")
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_CMAKE}")
 endif ()
 
-# Use custom compiled libc++ to be able to step into libc++ implementation if desired
-SET(CUSTOM_STD OFF CACHE BOOL "If custom STD is desired, enable this")
+#Apply these compiler options only if compiler is clang and OS not windows
+if ("${CMAKE_CXX_COMPILER}" MATCHES "clang" AND NOT WIN32)
+    message(NOTICE "extra warnings for clang compilers added")
+    list(APPEND ADD_ALL_WARNINGS
+            -fno-elide-constructors
+            -Wshadow
+            -Wextra
+            -Wpedantic
+            -Weverything
+            -Wno-c++98-compat
+            -Wno-c++98-compat-pedantic
+            -Wno-newline-eof
+    )
+endif()
+
+# Use custom compiled libc++ to be able to step into libc++ implementation if desired. 
+SET(CUSTOM_STD OFF CACHE BOOL "If custom STD is desired, enable this. Note that with vcpkg, forcing libc++ will get an error. If you enabled this either build everything from source or use fetchcontent")
+
 if (${CUSTOM_STD} STREQUAL "ON")
     SET(CUSTOM_STD_RELEASE ON CACHE BOOL "IF CUSTOM_STD Desired. Configure this option to use release or debug mode.")
-    if (${CUSTOM_STD_RELEASE} STREQUAL "ON")
+    if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+        message(WARNING "Custom STD LOC: /home/selviniah/Documents/llvm-project/build/include/c++/v1")
         set(STD_INCLUDE_DIR "/home/selviniah/Documents/llvm-project/build/include/c++/v1")
         set(STD_LIB_DIR "/home/selviniah/Documents/llvm-project/build/lib")
     else ()
+        message(WARNING "Custom STD LOC: /home/selviniah/Documents/llvm-project/_InstallLibcxxDebug/include/c++/v1")
         set(STD_INCLUDE_DIR "/home/selviniah/Documents/llvm-project/_InstallLibcxxDebug/include/c++/v1")
         set(STD_LIB_DIR "/home/selviniah/Documents/llvm-project/_InstallLibcxxDebug/lib")
     endif ()
 
 
-    add_compile_options(-Wshadow -Wall -Wextra -Wpedantic -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-newline-eof
-            -nostdinc++ -Wno-reserved-macro-identifier) # -fno-elide-constructors
+    add_compile_options(-nostdinc++) # -fno-elide-constructors -Wshadow -Wextra -Wpedantic -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-newline-eof
 
     link_directories(${STD_LIB_DIR})
     include_directories(${STD_INCLUDE_DIR})

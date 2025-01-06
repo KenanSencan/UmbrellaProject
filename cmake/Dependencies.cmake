@@ -32,6 +32,7 @@ foreach (MAIN_FILE ${MAIN_FILES})
     get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE) #Get only the filename, this will be target's and executable's name 
     message(STATUS "Executable: ${EXECUTABLE_NAME} created")
     add_executable(${EXECUTABLE_NAME} ${MAIN_FILE})
+    target_compile_options(${EXECUTABLE_NAME} PRIVATE ${ADD_ALL_WARNINGS}) #Enable all possible warnings
 
     #I am not sure this is right way to handle inclusion. There's custom mimic for STL. Standalone executables often using these but I am not really sure how the performance would be affected when the includes get bigger.
     #TODO:  I need to later on find better resolution for here 
@@ -43,10 +44,6 @@ foreach (MAIN_FILE ${MAIN_FILES})
     endif ()
 endforeach ()
 
-# For now I am doing everything for Windows, later on I will consider doing cross-platform for vcpkg. Though it supposed to work cross platform 
-if (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows" AND BuildType STREQUAL "VCPKG")
-    message(WARNING "Detected OS is not Windows, for now don't use vcpkg without windows. At least I didn't try ")
-endif ()
 
 # Give error if another value given outside of BuildTypeEnum variable's values 
 if (NOT BuildType IN_LIST UpperBuildTypeEnum)
@@ -63,6 +60,7 @@ if (BuildType STREQUAL "FETCHCONTENT")
             GIT_TAG 2.6.x)
     FetchContent_MakeAvailable(SFML)
 
+    #After coming here after a long while, I don't know why specifically for fetch content, I only linking graphics but I had better leave it as is.  
     target_link_libraries(main PRIVATE sfml-graphics)
 
     # FLTK Fetch. (FLTK has been removed from the project) 
@@ -93,16 +91,27 @@ if (BuildType STREQUAL "FETCHCONTENT")
     # Make the dependency library building with VCPKG either in normal mode or manifest mode
 elseif (BuildType STREQUAL "VCPKG")
     #    find_package(FLTK CONFIG REQUIRED )
+    find_package(OpenAL CONFIG REQUIRED)
     find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
-    find_package(benchmark REQUIRED)
-    target_link_libraries(main PRIVATE sfml-system sfml-window sfml-graphics sfml-network sfml-audio sfml-main benchmark::benchmark)
-
+    find_package(benchmark CONFIG REQUIRED)
+    find_package(Threads REQUIRED)
+    
+    target_link_libraries(main PRIVATE
+            sfml-audio
+            sfml-graphics
+            $<$<PLATFORM_ID:Windows>:sfml-main>  # Only link sfml-main on Windows
+            sfml-network
+            sfml-system
+            sfml-window
+            benchmark::benchmark 
+            OpenAL::OpenAL
+    )
     #FLTK has been removed from the project  
     #    target_link_libraries(main PRIVATE fltk fltk_gl fltk_forms fltk_images sfml-system sfml-window sfml-graphics sfml-network sfml-audio sfml-main benchmark::benchmark)
 
     foreach (MAIN_FILE ${MAIN_FILES})
         get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE)
-        target_link_libraries(${EXECUTABLE_NAME} PRIVATE benchmark::benchmark)
+        target_link_libraries(${EXECUTABLE_NAME} PRIVATE benchmark::benchmark benchmark::benchmark_main Threads::Threads) 
     endforeach ()
 
     # Make the dependency library building with SourceBuild
@@ -114,7 +123,22 @@ elseif (BuildType STREQUAL "SOURCEBUILD")
 
     add_subdirectory("${CMAKE_SOURCE_DIR}/dep/SFML")
     target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/dep/SFML/include)
-    target_link_libraries(main PRIVATE sfml-audio sfml-graphics sfml-main sfml-network sfml-system sfml-window)
+    target_link_libraries(main PRIVATE
+            sfml-audio
+            sfml-graphics
+            $<$<PLATFORM_ID:Windows>:sfml-main>  # Only link sfml-main on Windows
+            sfml-network
+            sfml-system
+            sfml-window
+    )
+#    "$<IF:
+    #$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,18.1.7>, # Condition: Check if compiler version is >= 18.1.7
+    #VERSION_GREATER,                                         # True value: Define VERSION_GREATER
+    #VERSION_NOT_GREATER                                       # False value: Define VERSION_NOT_GREATER
+    #>")
+    #"$<IF:$<CXX_COMPILER_ID:MSVC>,MSVC_DEFINED,MSVC_NOT_DEFINED>"
+    
+    #$<PLATFORM_ID:Windows> #1
 
     set(BENCHMARK_ENABLE_TESTING OFF)
     add_subdirectory("${CMAKE_SOURCE_DIR}/dep/benchmark")

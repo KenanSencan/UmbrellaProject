@@ -107,6 +107,7 @@ void BoyerMooreMethod(const int Arr[], const int size, benchmark::State& state)
 
 int main(int argc, char** argv)
 {
+    std::cout << "Test Hello World";
     const std::string TEXTLOC = (std::filesystem::current_path().parent_path().parent_path() / "src" / "input.txt").string();
 
     constexpr int size = 10000;

@@ -1,0 +1,2 @@
+# My String class
+- 

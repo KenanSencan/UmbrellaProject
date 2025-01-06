@@ -30,8 +30,11 @@ include(cmake/Dependencies.cmake)
 
 include(cmake/PGO.cmake)
 
-#Here is for other subdirectory targets.
-add_subdirectory(src/DSA/helper/MyVector)
+#Here is for other subdirectory targets. 
+#TODO: Automatically detect all the subdirectories of src/DSA/helper and add them as add_subdirectory 
+add_subdirectory(src/DSA/CustomDS/MyVector)
+add_subdirectory(src/DSA/CustomDS/MyString)
+
 
 #This is for ImportantConcepts 
 add_subdirectory(src/ImportantConcepts)
