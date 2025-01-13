@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 3.28)
+set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_CMAKE}")
+project(ETG LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 23)
+
+# Specify only source files
+add_executable(ETG main.cpp
+        DebugTexts.h)
+
+# Easiest and fastest way is VCPKG 
+find_package(OpenAL CONFIG REQUIRED)
+find_package(SFML CONFIG REQUIRED system window graphics network audio)
+find_package(benchmark CONFIG REQUIRED)
+find_package(Threads REQUIRED)
+
+target_link_libraries(ETG PRIVATE
+        sfml-audio
+        sfml-graphics
+        $<$<PLATFORM_ID:Windows>:sfml-main>  # Only link sfml-main on Windows
+        sfml-network
+        sfml-system
+        sfml-window
+        benchmark::benchmark
+        OpenAL::OpenAL
+)

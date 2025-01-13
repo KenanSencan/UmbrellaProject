@@ -62,12 +62,24 @@ namespace Helper
     }
 
     template<typename InputIt, typename OutputIt>
-    void Reverse(InputIt first, InputIt last, OutputIt out)
+    void ReverseCopy(InputIt first, InputIt last, OutputIt out)
     {
         while (first != last)
         {
             --last;
             *out++ = *last; 
+        }
+    }
+
+    template<typename InputIt>
+    void Reverse(InputIt first, InputIt last)
+    {
+        --last;
+        while (first != last && first < last) //second requirement is necessary for odd indexed iterators
+        {
+            std::iter_swap(first,last);
+            --last;
+            ++first;
         }
     }
 };

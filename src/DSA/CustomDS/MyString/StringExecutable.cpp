@@ -57,7 +57,9 @@ int main(int argc, char** argv)
 
     MyString<char> Test{Str.Size()};
 
-    Helper::Reverse(Str.begin(), Str.end(),Test.begin());
+    Str = "Hello";
+    Helper::ReverseCopy(Str.begin(), Str.end(),Test.begin());
+    Helper::Reverse(Str.begin(), Str.end());
     
     //Benchmarking
     constexpr int size = 1000000;

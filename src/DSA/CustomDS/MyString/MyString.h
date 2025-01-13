@@ -26,8 +26,9 @@ public:
         CopyStr(value);
         Str[size] = '\0';
 
-        std::cout << "Normal constructor with value argument called" << std::endl;
+        // std::cout << "Normal constructor with value argument called" << std::endl;
     }
+    
 
     MyString(const size_t size) : Str(nullptr), CurrentSize(0), Capacity(0)
     {
@@ -50,7 +51,7 @@ public:
             Str[i] = other.Str[i];
         }
         Str[CurrentSize] = '\0';
-        std::cout << "copy constructor with other argument called" << std::endl;
+        // std::cout << "copy constructor with other argument called" << std::endl;
     }
 
 
