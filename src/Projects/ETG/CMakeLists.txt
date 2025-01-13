@@ -5,7 +5,10 @@ set(CMAKE_CXX_STANDARD 23)
 
 # Specify only source files
 add_executable(ETG main.cpp
-        DebugTexts.h)
+        Managers/DebugTexts.h
+        UI/UserInterface.cpp
+        UI/UserInterface.h
+        Managers/Globals.cpp)
 
 # Easiest and fastest way is VCPKG 
 find_package(OpenAL CONFIG REQUIRED)

@@ -54,8 +54,7 @@ namespace ETG
             debugText.setFillColor(sf::Color::Yellow);
         }
 
-        //TODO: Later on create a new class for only DebugTexts. It's pointless to have so many Debug texts in InputManager
-        static void Draw(sf::RenderWindow& window)
+        static void Draw()
         {
         }
     };
