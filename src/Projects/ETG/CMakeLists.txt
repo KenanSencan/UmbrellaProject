@@ -8,7 +8,11 @@ add_executable(ETG main.cpp
         Managers/DebugTexts.h
         UI/UserInterface.cpp
         UI/UserInterface.h
-        Managers/Globals.cpp)
+        Managers/Globals.cpp
+        Animation/AnimationManager.h
+        Animation/Animation.cpp
+        Animation/Animation.h
+        Managers/GameManager.cpp)
 
 # Easiest and fastest way is VCPKG 
 find_package(OpenAL CONFIG REQUIRED)

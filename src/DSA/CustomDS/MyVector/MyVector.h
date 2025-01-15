@@ -2,6 +2,7 @@
 #define MYVECTOR_H
 
 #include <ostream>
+#include <iostream>
 #include <algorithm>
 #include <stdexcept>
 
@@ -9,16 +10,21 @@ template <typename T>
 class MyVector
 {
 public:
-    // Constructors and Destructor
-    MyVector();
-    ~MyVector();
+    //NOTE: RULE OF FIVE HERE. WHENEVER YOU NEED FOR CONSTRUCTORS REFERENCE HERE
+    //NOTE:  1. default(normal) constructor,
+    //NOTE:  2. destructor 
+    //NOTE:  3. Copy constructor + copy assignment operator. Arg: (const SelfT& other) 
+    //NOTE:  4. Move constructor + move assignment operaqtor. Arg: (selfT&& other)    
+  
+    MyVector(); //normal constructor
+    ~MyVector(); //destructor
     MyVector(const MyVector& other); // Copy constructor
     MyVector(MyVector&& other) noexcept; // Move constructor
-
     // Assignment Operators
     MyVector& operator=(const MyVector& other); // Copy assignment
     MyVector& operator=(MyVector&& other) noexcept; // Move assignment
-
+    //NOTE: REFERENCE PART for constructor is over
+    
     // Friend Function for Output
     template <typename U>
     friend std::ostream& operator<<(std::ostream& os, const MyVector<U>& vec);

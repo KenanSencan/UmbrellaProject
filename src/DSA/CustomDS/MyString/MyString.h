@@ -42,7 +42,6 @@ public:
 
 
     //Copy constructor
-
     MyString(const MyString& other) : Str(nullptr), CurrentSize(other.CurrentSize), Capacity(other.Capacity)
     {
         Str = new T[Capacity];
@@ -56,7 +55,6 @@ public:
 
 
     //Copy assignment
-
     MyString& operator=(const MyString& other)
     {
         if (this != &other)
@@ -76,7 +74,6 @@ public:
 
 
     //Raw string == comparison
-
     bool operator==(const T* other)
     {
         size_t otherLen = strlen(other);
