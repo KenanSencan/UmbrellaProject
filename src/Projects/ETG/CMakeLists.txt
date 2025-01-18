@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_CMAKE}")
+set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_CMAKE}" CACHE STRING "Vcpkg toolchain file")
 project(ETG LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 
