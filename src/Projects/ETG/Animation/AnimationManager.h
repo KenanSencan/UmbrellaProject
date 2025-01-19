@@ -1,5 +1,6 @@
 #pragma once
 
+#include <any>
 #include <unordered_map>
 #include <variant>
 #include <string>
@@ -15,9 +16,11 @@ enum class EnemyIdle
     Idle_Right,
 };
 
-using AnimationKey = std::variant<std::string, int, EnemyIdle>;
+//Variant necessary to provide hash based on  
+using AnimationKey = std::variant<std::string, int, EnemyIdle>; //, Study later to include: std::any
 
 // 3) Custom hash + equality
+//Based on given key of variant, convert it to hash
 struct AnimationKeyHash
 {
     std::size_t operator()(const AnimationKey& key) const
@@ -33,9 +36,10 @@ struct AnimationKeyHash
             {
                 return std::hash<int>{}(arg);
             }
-            else if constexpr (std::is_same_v<T, EnemyIdle>)
+            else if constexpr (std::is_enum_v<T>)
             {
-                return std::hash<int>{}(static_cast<int>(arg));
+                using UnderlyingT = std::underlying_type_t<T>;
+                return std::hash<UnderlyingT>{}(static_cast<UnderlyingT>(arg));
             }
             else
             {
@@ -56,15 +60,13 @@ struct AnimationKeyEqual
 {
     bool operator()(const AnimationKey& lhs, const AnimationKey& rhs) const
     {
-        return lhs == rhs; // variant already supports operator==
+        return lhs == rhs; // variant type supports operator==
     }
 };
 
 class AnimationManager
 {
 public:
-    // Our flexible dictionary
-    // - The second map is optional if you want to store "GunOrigin"
     std::unordered_map<AnimationKey, Animation, AnimationKeyHash, AnimationKeyEqual> AnimationDict;
     std::unordered_map<AnimationKey, sf::Vector2f, AnimationKeyHash, AnimationKeyEqual> GunOrigin;
 
@@ -135,7 +137,7 @@ void AnimationManager::Update(T key)
     }
 }
 
-inline void AnimationManager::Draw(sf::Vector2f position, float layerDepth)
+inline void AnimationManager::Draw(const sf::Vector2f position, const float layerDepth)
 {
     // Draw the animation for LastKey
     auto it = AnimationDict.find(LastKey);
@@ -160,9 +162,9 @@ inline void AnimationManager::Draw(const sf::Texture& texture,
 }
 
 template <typename T>
-void AnimationManager::SetOrigin(T key, sf::Vector2f origin)
+void AnimationManager::SetOrigin(T key, const sf::Vector2f origin)
 {
-    AnimationKey variantKey = key;
+    const AnimationKey variantKey = key;
     auto it = AnimationDict.find(variantKey);
     if (it != AnimationDict.end())
     {

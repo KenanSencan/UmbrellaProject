@@ -4,23 +4,24 @@ void ETG::GameManager::Initialize()
 {
     Window = std::make_shared<sf::RenderWindow>(sf::VideoMode(1920, 1080), "SFML example");
     Window->requestFocus();
+    // Window->setFramerateLimit(170);
+    // Window->
     Globals::Initialize(Window);
     InputManager::InitializeDebugText();
     UI.Initialize();
 
-    //Animation: 
-    const auto rogueFirePath = (std::filesystem::current_path().parent_path() / "Resources" / "Guns" / "RogueSpecial_Fire.png").string();
-    if (!rogueFireTexture.loadFromFile(rogueFirePath))
-    {
-        throw std::runtime_error("Failed to load: " + rogueFirePath);
-    }
+    //Animation preparation: 
+    const auto IdleFrontHandAnimation = Animation::CreateSpriteSheet("Resources/Player/Idle/Back","rogue_idle_back_hand_left_00","PNG", 0.12f);
+    const auto IdleRightAnimation = Animation::CreateSpriteSheet("Resources/Player/Idle/Front","rogue_idle_front_hand_left_00","PNG", 0.12f);
 
-    testAnimation = Animation(rogueFireTexture, 0.1f, 5, 1);
-
+    //Now make animation
+    AnimationManager.AddAnimation<std::string>("Idle_FrontHand", IdleFrontHandAnimation);
+    AnimationManager.AddAnimation<std::string>("Idle_Right", IdleRightAnimation);
 }
 
 void ETG::GameManager::LoadContent()
 {
+    //
 }
 
 void ETG::GameManager::Update()
@@ -35,9 +36,7 @@ void ETG::GameManager::Update()
                 Window->close();
         }
 
-        //Update global elapsed time
-        sf::Time elapsedTime = clock.restart();
-        Globals::Update(elapsedTime);
+        Globals::Update();
 
         //Clear the screen
         Window->clear(sf::Color::Black);
@@ -45,9 +44,18 @@ void ETG::GameManager::Update()
         //process input
         InputManager::Update();
 
-        testAnimation.Update();
+        AnimationManager.Update<std::string>("Idle_Right");
 
-        //Lastly draw everything
+        //Example test to change animation easily with AnimationManager
+        if (Globals::ElapsedTimeSeconds >= 5.f)
+        {
+            AnimationManager.Update<std::string>("Idle_FrontHand");
+        }
+
+        std::cout << FrameTick << std::endl;
+        
+
+        //Lastly draw everything. I realized the FPS 1.5x got slower after this Draw 
         Draw();
     }
 }
@@ -57,8 +65,7 @@ void ETG::GameManager::Draw()
     DebugText::Draw(*Window);
     UI.Draw();
 
-    testAnimation.Draw(rogueFireTexture,sf::Vector2f{350.f,350.f},sf::Color::White,0.f,sf::Vector2f{0.f,0.f},35.f);
-    // testAnimation.Draw(sf::Vector2f{350.f,350.f}, 0);
+    AnimationManager.Draw({250.f,250.f}, 0);
 
     //Display the frame
     Window->display();

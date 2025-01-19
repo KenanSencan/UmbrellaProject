@@ -8,16 +8,16 @@
 namespace ETG::Globals
 {
     //Elapsed time in seconds
-    extern float TotalSeconds;
+    extern float FrameTick;
+    extern float ElapsedTimeSeconds;
 
     //Window and rendering resources
     extern  std::shared_ptr<sf::RenderWindow> Window;
     extern  sf::Font Font;
     extern  sf::Vector2u ScreenSize;
-    // const std::string FontLoc = (std::filesystem::current_path().parent_path() / "Resources" / "Fonts" / "SegoeUI.ttf").string(); //inlined for performance
 
     //Function to update elapsed time
-    void Update(const sf::Time& elapsedTime);
+    void Update();
 
     //Initialize global variables
     void Initialize(const std::shared_ptr<sf::RenderWindow>& window);

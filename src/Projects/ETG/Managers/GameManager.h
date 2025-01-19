@@ -18,7 +18,6 @@ namespace ETG
         //UI class
 
     public:
-        sf::Clock clock;
         UserInterface UI;
 
         void Initialize();
@@ -28,7 +27,7 @@ namespace ETG
         void Update();
         void Draw();
 
-        Animation testAnimation;
-        sf::Texture rogueFireTexture;
+        // sf::Texture IdleTex;
+        AnimationManager AnimationManager;
     };
 }

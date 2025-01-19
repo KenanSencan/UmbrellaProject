@@ -3,14 +3,24 @@
 
 namespace ETG::Globals
 {
-    float TotalSeconds = 0.0f;
+    float FrameTick = 0.0f;
+    float ElapsedTimeSeconds = 0.0f;
     std::shared_ptr<sf::RenderWindow> Window = nullptr;
     sf::Font Font;
     sf::Vector2u ScreenSize;
+    sf::Clock clock;
+    sf::Clock tickClock;
 
-    void Update(const sf::Time& elapsedTime)
+    void Update()
     {
-        TotalSeconds = elapsedTime.asSeconds();
+        //Counter starts the beginning in runtime and never stops
+        ElapsedTimeSeconds = clock.getElapsedTime().asSeconds();
+
+        //Calculate tick. In 60fps it should be: 0.016
+        //It was hard for me to understand. restart sets 0 and returns total elapsed time since the last time.
+        //Every loop call this will be called. So in every call it will return the total time passed in seconds.   
+        const sf::Time elapsedTime = tickClock.restart();
+        FrameTick = elapsedTime.asSeconds();
     }
 
     void Initialize(const std::shared_ptr<sf::RenderWindow>& window)

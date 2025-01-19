@@ -1,8 +1,5 @@
-//
-// Created by selviniah on 13/01/25.
-//
-
 #include "Animation.h"
+
 
 #include "../Managers/Globals.h"
 
@@ -25,7 +22,7 @@ Animation::Animation(const sf::Texture& texture, const float eachFrameSpeed, con
 void Animation::Update()
 {
     if (!Active) return;
-    AnimTimeLeft -= ETG::Globals::TotalSeconds;
+    AnimTimeLeft -= ETG::Globals::FrameTick;
     if (AnimTimeLeft <= 0)
     {
         CurrentFrame++;
@@ -34,7 +31,7 @@ void Animation::Update()
     }
 }
 
-void Animation::Draw(const sf::Vector2f position, float layerDepth)
+void Animation::Draw(const sf::Vector2f position, float layerDepth) const
 {
     sf::Sprite frame;
     frame.setTexture(Texture);
@@ -48,7 +45,7 @@ void Animation::Draw(const sf::Vector2f position, float layerDepth)
     ETG::Globals::Window->draw(frame);
 }
 
-void Animation::Draw(const sf::Texture& texture, const sf::Vector2f position, const sf::Color color, const float rotation, const sf::Vector2f origin, const float scale)
+void Animation::Draw(const sf::Texture& texture, const sf::Vector2f position, const sf::Color color, const float rotation, const sf::Vector2f origin, const float scale) const
 {
     sf::Sprite frame;
     frame.setTexture(Texture);
@@ -91,4 +88,54 @@ sf::Texture Animation::GetCurrentFrameAsTexture() const
 bool Animation::IsAnimationFinished() const
 {
     return CurrentFrame == FrameX - 1;
+}
+
+Animation Animation::CreateSpriteSheet(const std::string& RelativePath, const std::string& FileName, const std::string& Extension, const float eachFrameSpeed)
+{
+    //Initial setup
+    std::vector<sf::Image> imageArr;
+    int counter = 1;
+    int totalWidth = 0, maxHeight = 0;
+    // const std::string AnimPath = (std::filesystem::current_path().parent_path() / "Resources" / "Player" / "Idle" / "Back" / "rogue_idle_back_hand_left_00").string();
+    const std::string basePath = (std::filesystem::current_path().parent_path() / RelativePath / FileName).string();
+    std::string filePath = basePath + std::to_string(counter) + "." += Extension;
+
+    //Check firstly if filepath is valid
+    if (!std::filesystem::exists(filePath)) throw std::runtime_error("File not found at: " + filePath);
+
+    //Load all the given textures 
+    while (true)
+    {
+        sf::Image singleImage;
+        filePath = basePath + std::to_string(counter) + "." += Extension;
+        if (!std::filesystem::exists(filePath)) break;
+
+        singleImage.loadFromFile(filePath);
+        imageArr.push_back(singleImage);
+        singleImage.saveToFile("/home/selviniah/Downloads/Compressed/sasani.png");
+        counter++;
+
+        totalWidth += int(singleImage.getSize().x);
+        maxHeight = std::max(maxHeight, int(singleImage.getSize().y));
+    }
+
+    //Create the spritesheet as image
+    sf::Image spriteImage;
+    spriteImage.create(totalWidth, maxHeight);
+
+    //Copy images into the image
+    unsigned int xOffset = 0;
+    for (auto& image : imageArr)
+    {
+        spriteImage.copy(image,xOffset,0);
+        spriteImage.saveToFile("/home/selviniah/Downloads/Compressed/sasani.png");
+        xOffset += image.getSize().x;
+    }
+
+    //convert image into texture and draw it
+    sf::Texture spriteTex;
+    spriteTex.loadFromImage(spriteImage);
+
+    auto anim = Animation{spriteTex,eachFrameSpeed,int(imageArr.size()),1};
+    return anim;
 }
