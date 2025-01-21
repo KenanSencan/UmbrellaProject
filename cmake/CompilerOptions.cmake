@@ -89,7 +89,9 @@ endif ()
 
 
 #Remove this shit later on
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow -Wconversion -Wfloat-equal -Wold-style-cast")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND NOT "${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow -Wconversion -Wfloat-equal -Wold-style-cast")
+endif ()
 
 
 #Compiler options:
@@ -134,3 +136,10 @@ set(BENCHMARK_FORMAT "console")
 set(BENCHMARK_OUT_FORMAT "console")
 set(BENCHMARK_OUT "${CMAKE_BINARY_DIR}/benchmark/hello.txt")
 set(BENCHMARK_ENABLE_TESTING OFF)
+
+# Necessary compiler options given here 
+
+# By default in clang-cl, exceptions disabled. Enable it. 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND "${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+endif ()

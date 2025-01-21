@@ -24,7 +24,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
 # Temporarily adding the main executable for the project. Even though this MainMain.cpp is not used for anything, for now SFML only linked to use this target 
-add_executable(main src/MainMain.cpp)
+# this gave an error in my laptop for no reason. 
+#add_executable(main src/MainMain.cpp)
 
 include(cmake/Dependencies.cmake)
 
