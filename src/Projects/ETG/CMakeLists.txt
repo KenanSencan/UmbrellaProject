@@ -12,13 +12,19 @@ add_executable(ETG main.cpp
         Animation/AnimationManager.h
         Animation/Animation.cpp
         Animation/Animation.h
-        Managers/GameManager.cpp)
+        Managers/GameManager.cpp
+        Characters/Hero.cpp
+        Characters/Hero.h
+        Managers/StateEnums.h)
 
 # Easiest and fastest way is VCPKG 
 find_package(OpenAL CONFIG REQUIRED)
 find_package(SFML CONFIG REQUIRED system window graphics network audio)
 find_package(benchmark CONFIG REQUIRED)
 find_package(Threads REQUIRED)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-backtrace-limit=0 -ferror-limit=0")
+
 
 target_link_libraries(ETG PRIVATE
         sfml-audio

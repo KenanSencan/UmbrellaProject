@@ -1,6 +1,4 @@
 #include "Animation.h"
-
-
 #include "../Managers/Globals.h"
 
 Animation::Animation(const sf::Texture& texture, const float eachFrameSpeed, const int frameX, const int frameY, const int row)
@@ -29,6 +27,9 @@ void Animation::Update()
         CurrentFrame = CurrentFrame >= FrameX ? 0 : CurrentFrame; //restart if CurrentFrame reached last element 
         AnimTimeLeft = EachFrameSpeed;
     }
+
+    //Set current frame
+    CurrRect = Frames[CurrentFrame];
 }
 
 void Animation::Draw(const sf::Vector2f position, float layerDepth) const
@@ -112,7 +113,6 @@ Animation Animation::CreateSpriteSheet(const std::string& RelativePath, const st
 
         singleImage.loadFromFile(filePath);
         imageArr.push_back(singleImage);
-        singleImage.saveToFile("/home/selviniah/Downloads/Compressed/sasani.png");
         counter++;
 
         totalWidth += int(singleImage.getSize().x);
@@ -128,7 +128,6 @@ Animation Animation::CreateSpriteSheet(const std::string& RelativePath, const st
     for (auto& image : imageArr)
     {
         spriteImage.copy(image,xOffset,0);
-        spriteImage.saveToFile("/home/selviniah/Downloads/Compressed/sasani.png");
         xOffset += image.getSize().x;
     }
 

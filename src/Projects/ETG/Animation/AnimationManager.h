@@ -6,18 +6,10 @@
 #include <string>
 #include "Animation.h"
 #include "../Managers/Globals.h" // If you need to reference SFML window, etc.
+#include "../Managers/StateEnums.h"
 
-
-//Just a placeholder enum 
-enum class EnemyIdle
-{
-    Idle_Back,
-    Idle_Left,
-    Idle_Right,
-};
-
-//Variant necessary to provide hash based on  
-using AnimationKey = std::variant<std::string, int, EnemyIdle>; //, Study later to include: std::any
+//Variant necessary to provide hashing based on the given type.   
+using AnimationKey = std::variant<std::string, int, ETG::RunEnum, ETG::IdleEnum, ETG::DashEnum>; //, Study later to include: std::any
 
 // 3) Custom hash + equality
 //Based on given key of variant, convert it to hash

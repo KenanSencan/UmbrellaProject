@@ -1,10 +1,7 @@
 #pragma once
-#include "InputManager.h"
-#include <iostream>
 
-#include "DebugTexts.h"
-#include "../Animation/Animation.h"
 #include "../Animation/AnimationManager.h"
+#include "../Characters/Hero.h"
 #include "../UI/UserInterface.h"
 
 namespace ETG
@@ -15,6 +12,7 @@ namespace ETG
     {
     private:
         //Hero class
+        Hero Hero{sf::Vector2f(150,150)};
         //UI class
 
     public:
@@ -26,8 +24,5 @@ namespace ETG
         void LoadContent();
         void Update();
         void Draw();
-
-        // sf::Texture IdleTex;
-        AnimationManager AnimationManager;
     };
 }

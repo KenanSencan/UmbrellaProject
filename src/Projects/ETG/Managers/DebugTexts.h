@@ -32,7 +32,10 @@ namespace ETG
 
             // Moving state
             DrawDebugText("Moving: " + std::string(InputManager::IsMoving() ? "true" : "false"), window);
-            DrawDebugText("WindowSize: " + std::to_string(Globals::ScreenSize.x) + " " + std::to_string(Globals::ScreenSize.y),  window);
+            DrawDebugText("WindowSize: " + std::to_string(Globals::ScreenSize.x) + " " + std::to_string(Globals::ScreenSize.y), window);
+
+            DrawDebugText("FPS: " + std::to_string(1 / Globals::FrameTick), window);
+            DrawDebugText("Hero position: " + std::to_string(Hero::Position.x) + " " + std::to_string(Hero::Position.y), window);
         }
 
         static void DrawDebugText(const std::string& str, sf::RenderWindow& window)

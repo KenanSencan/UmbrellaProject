@@ -12,6 +12,7 @@ private:
     bool Active = true;
 
 public:
+    sf::IntRect CurrRect;
     sf::Texture Texture;
     sf::Vector2f Origin;
     std::vector<sf::Rect<int>> Frames;
