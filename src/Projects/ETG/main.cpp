@@ -4,6 +4,12 @@ int main()
 {
     ETG::GameManager GM;
     GM.Initialize();
-    GM.Update();
+
+    while (ETG::GameManager::IsRunning())
+    {
+        GM.Update();
+        GM.Draw();        
+    }
+    
     return 0;
 }

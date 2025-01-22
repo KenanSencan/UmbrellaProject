@@ -26,6 +26,14 @@ namespace ETG
         Dash_Right
     };
 
+    enum class HeroStateEnum
+    {
+        Idle,
+        Run,
+        Dash,
+        Die
+    };
+
     static std::vector<ETG::RunEnum> RunEnumValues = {
         RunEnum::Run_Back,
         RunEnum::Run_BackWard,

@@ -19,8 +19,8 @@ namespace ETG
         AmmoDisplay.loadFromFile(ResPath + "/UI/AmmoDisplay.png");
 
         const sf::Vector2u frameSize = Frame.getSize();
-        FrameOffsetX = Globals::ScreenSize.x * 0.25; //%10 of the screensize
-        FrameOffsetY = Globals::ScreenSize.y * 0.25; //%10 of the screensize
+        FrameOffsetX = Globals::ScreenSize.x * 0.25; //%25 of the screensize
+        FrameOffsetY = Globals::ScreenSize.y * 0.25; //%25 of the screensize
         
         FramePosition = {
             static_cast<int>(Globals::ScreenSize.x / 2.f + frameSize.x / 2.f + FrameOffsetX),

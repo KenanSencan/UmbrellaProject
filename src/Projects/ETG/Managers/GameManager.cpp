@@ -12,44 +12,39 @@ void ETG::GameManager::Initialize()
     UI.Initialize();
 }
 
-void ETG::GameManager::LoadContent()
-{
-    //
-}
-
 void ETG::GameManager::Update()
 {
-    //Update Function
-    while (Window->isOpen())
+    sf::Event event{};
+    while (Window->pollEvent(event))
     {
-        sf::Event event{};
-        while (Window->pollEvent(event))
-        {
-            if (event.type == sf::Event::Closed)
-                Window->close();
-        }
-
-        Globals::Update();
-
-        //Clear the screen
-        Window->clear(sf::Color::Black);
-
-        //process input
-        InputManager::Update();
-
-        Hero.Update();
-        
-        //Lastly draw everything. I realized the FPS 1.5x got slower after this Draw
-        Draw();
+        if (event.type == sf::Event::Closed)
+            Window->close();
     }
+
+    Globals::Update();
+
+    //process input
+    InputManager::Update();
+
+    Hero.Update();
 }
 
 void ETG::GameManager::Draw()
 {
-    DebugText::Draw(*Window);
+    Window->clear(sf::Color::Black);
+    
+    //Draw the main game scene with Custom view. These draws will be drawn zoomed
+    Window->setView(Globals::MainView);
+
     UI.Draw();
     Hero.Draw();
-    
+
+    //Switch to the default (un-zoomed) view for overlays. These draws will be drawn in screen coords. 
+    Window->setView(Window->getDefaultView());
+
+    //Debug texts will be drawn in screen coords. 
+    DebugText::Draw(*Window);
+
     //Display the frame
     Window->display();
 }

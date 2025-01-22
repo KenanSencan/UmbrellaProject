@@ -11,9 +11,9 @@ namespace ETG
     class GameManager
     {
     private:
+        //For now I don't have anything other than hero and UI  
         //Hero class
-        Hero Hero{sf::Vector2f(150,150)};
-        //UI class
+        Hero Hero{sf::Vector2f(150, 150)};
 
     public:
         UserInterface UI;
@@ -21,7 +21,7 @@ namespace ETG
         void Initialize();
 
         //I might delete this later on 
-        void LoadContent();
+        static bool IsRunning() { return Window->isOpen(); };
         void Update();
         void Draw();
     };

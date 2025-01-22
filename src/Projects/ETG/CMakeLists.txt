@@ -1,21 +1,20 @@
 cmake_minimum_required(VERSION 3.28)
+if (NOT DEFINED ENV{VCPKG_CMAKE})
+        message(FATAL_ERROR "VCPKG_CMAKE environment variable is not set.")
+endif ()
+
 set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_CMAKE}" CACHE STRING "Vcpkg toolchain file")
 project(ETG LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 
 # Specify only source files
 add_executable(ETG main.cpp
-        Managers/DebugTexts.h
         UI/UserInterface.cpp
-        UI/UserInterface.h
         Managers/Globals.cpp
-        Animation/AnimationManager.h
         Animation/Animation.cpp
-        Animation/Animation.h
         Managers/GameManager.cpp
         Characters/Hero.cpp
-        Characters/Hero.h
-        Managers/StateEnums.h)
+)
 
 # Easiest and fastest way is VCPKG 
 find_package(OpenAL CONFIG REQUIRED)
@@ -27,7 +26,11 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND "${CMAKE_CXX_COMPILER_FRONTE
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 endif ()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-backtrace-limit=0 -ferror-limit=0")
+target_compile_options(ETG PRIVATE
+        $<$<CXX_COMPILER_ID:GNU>:-ftemplate-backtrace-limit=0 -ferror-limit=0>
+        $<$<CXX_COMPILER_ID:Clang>:-ftemplate-backtrace-limit=0 -ferror-limit=0>
+)
+
 
 
 target_link_libraries(ETG PRIVATE

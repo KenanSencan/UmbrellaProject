@@ -1,12 +1,23 @@
 #pragma once
 
 #include <any>
+#include <complex.h>
 #include <unordered_map>
 #include <variant>
 #include <string>
 #include "Animation.h"
+#include "AnimationManager.h"
+#include "AnimationManager.h"
+#include "AnimationManager.h"
+#include "AnimationManager.h"
+#include "AnimationManager.h"
 #include "../Managers/Globals.h" // If you need to reference SFML window, etc.
 #include "../Managers/StateEnums.h"
+
+template <typename>
+struct always_false : std::false_type
+{
+};
 
 //Variant necessary to provide hashing based on the given type.   
 using AnimationKey = std::variant<std::string, int, ETG::RunEnum, ETG::IdleEnum, ETG::DashEnum>; //, Study later to include: std::any
@@ -40,12 +51,6 @@ struct AnimationKeyHash
             return -1;
         }, key);
     }
-
-private:
-    template <typename>
-    struct always_false : std::false_type
-    {
-    };
 };
 
 struct AnimationKeyEqual
@@ -92,7 +97,7 @@ public:
     void SetOrigin(T key, sf::Vector2f origin);
 
     // Return the current frame as a texture for the last key
-    sf::Texture GetCurrentFrameAsTexture();
+    const sf::Texture& GetCurrentFrameAsTexture();
 
     // Check if the current animation has finished
     bool IsAnimationFinished();
@@ -112,7 +117,7 @@ void AnimationManager::AddAnimation(T key, const Animation& animation)
 template <typename T>
 void AnimationManager::Update(T key)
 {
-    const AnimationKey variantKey = key;
+    const AnimationKey variantKey = AnimationKey(key);
 
     // If the animation key exists
     if (AnimationDict.contains(variantKey))
@@ -132,7 +137,7 @@ void AnimationManager::Update(T key)
 inline void AnimationManager::Draw(const sf::Vector2f position, const float layerDepth)
 {
     // Draw the animation for LastKey
-    auto it = AnimationDict.find(LastKey);
+    const auto it = AnimationDict.find(LastKey);
     if (it != AnimationDict.end())
     {
         it->second.Draw(position, layerDepth);
@@ -157,27 +162,27 @@ template <typename T>
 void AnimationManager::SetOrigin(T key, const sf::Vector2f origin)
 {
     const AnimationKey variantKey = key;
-    auto it = AnimationDict.find(variantKey);
+    const auto it = AnimationDict.find(variantKey);
     if (it != AnimationDict.end())
     {
         it->second.Origin = origin;
     }
 }
 
-inline sf::Texture AnimationManager::GetCurrentFrameAsTexture()
+const inline sf::Texture& AnimationManager::GetCurrentFrameAsTexture()
 {
-    auto it = AnimationDict.find(LastKey);
+    const auto it = AnimationDict.find(LastKey);
     if (it != AnimationDict.end())
     {
         return it->second.GetCurrentFrameAsTexture();
     }
-    // Return an empty texture if no last key found
-    return sf::Texture{};
+
+    throw std::runtime_error("Failed to find current frame's texture. Last Key: ");
 }
 
 inline bool AnimationManager::IsAnimationFinished()
 {
-    auto it = AnimationDict.find(LastKey);
+    const auto it = AnimationDict.find(LastKey);
     if (it != AnimationDict.end())
     {
         return it->second.IsAnimationFinished();

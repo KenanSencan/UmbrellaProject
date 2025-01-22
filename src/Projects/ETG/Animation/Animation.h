@@ -10,12 +10,13 @@ private:
     int FrameX;
     int FrameY;
     bool Active = true;
+    mutable std::vector<sf::Texture> textureCache; 
 
 public:
     sf::IntRect CurrRect;
     sf::Texture Texture;
     sf::Vector2f Origin;
-    std::vector<sf::Rect<int>> Frames;
+    std::vector<sf::Rect<int>> FrameRects;
     bool IsValid = true;
 
     //NOTE: Rule of Five: Destructor, Copy Constructor, Copy Assignment, Move Constructor, Move Assignment
@@ -36,7 +37,7 @@ public:
 
     /// Restart the animation. Set `CurrentFrame` = 0, `AnimTimeLeft` = `EachFrameSpeed`
     void Restart();
-    sf::Texture GetCurrentFrameAsTexture() const;
+    const sf::Texture& GetCurrentFrameAsTexture() const;
     bool IsAnimationFinished() const;
 
     //Omit FileName's last number. If file's name is "SpriteSheet_001" Give "SpriteSheet_00"

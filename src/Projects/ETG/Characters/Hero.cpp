@@ -1,7 +1,5 @@
 #include "Hero.h"
-
 #include <iostream>
-
 #include "../Managers/InputManager.h"
 
 sf::Vector2f ETG::Hero::Position = {0.f, 0.f};
@@ -13,50 +11,55 @@ ETG::Hero::Hero(const sf::Vector2f Position) : HandPos({}), HandTex({})
     //Set hand tex file
     if (!HandTex.loadFromFile((std::filesystem::current_path().parent_path() / "Resources" / "Player" / "rogue_hand_001.PNG").string()))
         std::cerr << "Failed to load texture " << std::endl;
-    
+
     SetAnimations();
 }
 
 void ETG::Hero::Update()
 {
-    //Set the currentState to an enum later on. Relying on literal string like this unacceptable
-    //Set the current state based on the hero's status 
+    //Set the HeroState to an enum later on. Relying on literal string like this unacceptable
+    //Set the HeroState based on the hero's status 
     if (InputManager::IsMoving() && !IsDashing)
     {
-        currentState = "Run";
+        HeroState = HeroStateEnum::Run;
         Position += Globals::Normalize(InputManager::direction) * Speed * Globals::FrameTick;
     }
-    else if (!InputManager::IsMoving() && !IsDashing) currentState = "Idle";
-    else if (IsDashing) currentState = "Dash";
+    else if (!InputManager::IsMoving() && !IsDashing) HeroState = HeroStateEnum::Idle;
+    else if (IsDashing) HeroState = HeroStateEnum::Dash;
 
-    //Give keys for AnimManagerDict based on the currentState
-    if (currentState == "Dash")
-    {
-        AnimManagerDict[currentState].Update(DashEnum::Dash_Back);
-    }
-    else if (currentState == "Run")
-    {
-        AnimManagerDict[currentState].Update(RunEnum::Run_Back);
-    }
-    else if (currentState == "Idle")
-    {
-        AnimManagerDict[currentState].Update(IdleEnum::Idle_Back);
-    }
+    //Set AnimState based on the HeroState
+    if      (HeroState == HeroStateEnum::Dash) AnimState = DashEnum::Dash_Back;
+    else if (HeroState == HeroStateEnum::Run)  AnimState = RunEnum::Run_Back;
+    else if (HeroState == HeroStateEnum::Idle) AnimState = IdleEnum::Idle_Back;
+
+    //Update the animation based on the AnimState
+    AnimManagerDict[HeroState].Update(AnimState);
 
     //Set Origin to currently playing set animation's last texture's predefined origin. 
-    RelativeOrigin = AnimManagerDict[currentState].AnimationDict[AnimManagerDict[currentState].LastKey].Origin;
-    HandPos = Position + RelativeOrigin + sf::Vector2f(6.0 * 25, 1 * 25);
-    //11.5 12
+    RelativeOrigin = AnimManagerDict[HeroState].AnimationDict[AnimManagerDict[HeroState].LastKey].Origin;
+    HandPos = Position + RelativeOrigin + sf::Vector2f(HandRelativeLocX, 1);
+
+    //Origin: 11.5 12
+    const sf::IntRect CurrRect = AnimManagerDict[HeroState].AnimationDict[AnimState].CurrRect;
+    std::cout << CurrRect;
+
+    //Draw straight lines around the player. Also create it in Globals folder if you can. Read again Rect printing it's important
+    //But before that let's create Zooming Functionality.  
+    // AnimManagerDict[HeroState].GetCurrentFrameAsTexture();
+    
+    sf::Image image = AnimManagerDict[HeroState].LastTexture.copyToImage();
+    image.saveToFile("C:/Users/Selviniah/Music/Test.png");
 }
 
 void ETG::Hero::Draw()
 {
-    AnimManagerDict[currentState].Draw(Position, 0.01f);
+    AnimManagerDict[HeroState].Draw(Position, 0.01f);
+    Globals::Renderer::SimpleDraw(HandTex, HandPos);
 
     //Temporarily 
-    if (VisualizeOrigin()) return;
-    Globals::Renderer::SimpleDraw(HandTex,HandPos);
-    
+    if (Globals::DrawSinglePixelAtLoc(Position + RelativeOrigin)) return;
+    Globals::DrawSinglePixelAtLoc(Position);
+
 }
 
 void ETG::Hero::SetAnimations()
@@ -98,45 +101,22 @@ void ETG::Hero::SetAnimations()
     for (int i = 0; i < runAnims.size(); ++i)
     {
         animManagerRun.AddAnimation(RunEnumValues[i], runAnims[i]);
-        animManagerRun.SetOrigin(RunEnumValues[i], sf::Vector2f{(float)runAnims[i].Frames[0].width / 2, (float)runAnims[i].Frames[0].height / 2}); //I am hoping I made correct origin
+        animManagerRun.SetOrigin(RunEnumValues[i], sf::Vector2f{(float)runAnims[i].FrameRects[0].width / 2, (float)runAnims[i].FrameRects[0].height / 2}); //I am hoping I made correct origin
     }
-    AnimManagerDict["Run"] = animManagerRun;
+    AnimManagerDict[HeroStateEnum::Run] = animManagerRun;
 
     for (int i = 0; i < idleAnims.size(); ++i)
     {
         animManagerIdle.AddAnimation(IdleEnumValues[i], idleAnims[i]);
-        animManagerIdle.SetOrigin(IdleEnumValues[i], sf::Vector2f{(float)idleAnims[i].Frames[0].width / 2, (float)idleAnims[i].Frames[0].height / 2}); //I am hoping I made correct origin
+        animManagerIdle.SetOrigin(IdleEnumValues[i], sf::Vector2f{(float)idleAnims[i].FrameRects[0].width / 2, (float)idleAnims[i].FrameRects[0].height / 2}); //I am hoping I made correct origin
     }
-    AnimManagerDict["Idle"] = animManagerIdle;
+    AnimManagerDict[HeroStateEnum::Idle] = animManagerIdle;
 
     for (int i = 0; i < dashAnims.size(); ++i)
     {
         animManagerDash.AddAnimation(DashEnumValues[i], dashAnims[i]);
-        animManagerDash.SetOrigin(DashEnumValues[i], sf::Vector2f{(float)dashAnims[i].Frames[0].width / 2, (float)dashAnims[i].Frames[0].height / 2}); //I am hoping I made correct origin
+        animManagerDash.SetOrigin(DashEnumValues[i], sf::Vector2f{(float)dashAnims[i].FrameRects[0].width / 2, (float)dashAnims[i].FrameRects[0].height / 2}); //I am hoping I made correct origin
     }
-    AnimManagerDict["Dash"] = animManagerDash;
+    AnimManagerDict[HeroStateEnum::Dash] = animManagerDash;
 }
-
-bool ETG::Hero::VisualizeOrigin() const
-{
-    // Create a 1x1 green pixel using sf::Image
-    sf::Image greenPixel;
-    greenPixel.create(1, 1, sf::Color::Green);
-
-    // Load the image into a texture
-    sf::Texture tex;
-    if (!tex.loadFromImage(greenPixel))
-    {
-        return true; // Return true if texture creation fails
-    }
-
-    // Set up the sprite with the 1x1 green texture
-    sf::Sprite frame;
-    frame.setTexture(tex);
-    frame.setScale(25.f, 25.f); // Scale to make it visually larger
-    frame.setPosition(Position + RelativeOrigin); // Position it at the specified location
-
-    // Draw the sprite
-    Globals::Window->draw(frame);
-    return false;
-}
+;

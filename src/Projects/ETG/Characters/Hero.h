@@ -1,5 +1,4 @@
 #pragma once
-#include <string>
 #include <unordered_map>
 #include <SFML/System/Vector2.hpp>
 #include "../Animation/AnimationManager.h"
@@ -11,12 +10,16 @@ namespace ETG
     {
     public:
         static sf::Vector2f Position;
-        std::string currentState{};
         sf::Vector2f RelativeOrigin{0,0};
+
+        //Hero state
+        HeroStateEnum HeroState{};
+        using animState = std::variant<RunEnum, DashEnum, IdleEnum>;
+        AnimationKey AnimState{IdleEnum::Idle_Back};
 
     private:
         float Speed{300.f};
-        std::unordered_map<std::string, AnimationManager> AnimManagerDict{};
+        std::unordered_map<HeroStateEnum, AnimationManager> AnimManagerDict{};
         float Timer{}, DashTimer{};
         bool IsDashing{}, StartDashTimer{}, DashOnce{};
         int BeforeLerpX{}, BeforeLerpY{};
@@ -34,15 +37,17 @@ namespace ETG
         IdleEnum IdleEnum{};
         DashEnum DashEnum{};
         RunEnum RunEnum{};
+        float HandRelativeLocX{6.0};
 
     public:
         explicit Hero(sf::Vector2f Position);
         void Update();
-        bool VisualizeOrigin() const;
         void Draw();
+
 
     private:
         void SetAnimations();
 
     };
+
 }

@@ -13,6 +13,9 @@ namespace ETG
         inline static sf::Vector2f direction{};
         inline static sf::Vector2f heroPosition{};
         inline static sf::Vector2f heroOrigin{};
+        inline static float ZoomFactor = 0.01f;
+        inline static float MoveFactor = 5.0f;
+        
 
         // For drawing debug text
         inline static sf::Text debugText;
@@ -31,17 +34,27 @@ namespace ETG
         static void Update()
         {
             heroOrigin += heroPosition;
-            direction = sf::Vector2f(0.f, 0.f);
 
+            //Calculate directions. It can only be -1 or 1 
+            direction = sf::Vector2f(0.f, 0.f);
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) direction.x--;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) direction.x++;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) direction.y--;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) direction.y++;
+
+            //Camera Effects:
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) Globals::MainView.zoom(1.0f - ZoomFactor);
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) Globals::MainView.zoom(1.0f + ZoomFactor);
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) Globals::MainView.move(0,-MoveFactor);
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) Globals::MainView.move(0,+MoveFactor);
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) Globals::MainView.move(+MoveFactor,0);
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) Globals::MainView.move(-MoveFactor,0);
         }
 
         static float GetMouseAngleRelativeToHero(const sf::RenderWindow& window)
         {
-            sf::Vector2f diff = GetMouseWorldPosition(window) - heroPosition;
+            const sf::Vector2f diff = GetMouseWorldPosition(window) - heroPosition;
             return std::atan2(diff.y, diff.x);
         }
 
