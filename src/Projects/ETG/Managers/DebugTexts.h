@@ -35,7 +35,7 @@ namespace ETG
             DrawDebugText("WindowSize: " + std::to_string(Globals::ScreenSize.x) + " " + std::to_string(Globals::ScreenSize.y), window);
 
             DrawDebugText("FPS: " + std::to_string(1 / Globals::FrameTick), window);
-            DrawDebugText("Hero position: " + std::to_string(Hero::Position.x) + " " + std::to_string(Hero::Position.y), window);
+            DrawDebugText("Hero position: " + std::to_string(Hero::HeroPosition.x) + " " + std::to_string(Hero::HeroPosition.y), window);
             DrawDebugText("Zoom Scale: " + std::to_string(InputManager::ZoomScale), window);
         }
 

@@ -46,8 +46,6 @@ namespace ETG
             const float adjustedZoomFactor = AdjustZoomFactor();
             const float adjustedMoveFactor = AdjustMoveFactor();
 
-            std::cout << adjustedMoveFactor << std::endl;
-
             //Calculate directions. It can only be -1 or 1 
             direction = sf::Vector2f(0.f, 0.f);
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) direction.x--;

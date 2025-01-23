@@ -97,18 +97,20 @@ namespace ETG
 
     std::ostream& operator<<(std::ostream& lhs, const sf::IntRect& rhs)
     {
-        return lhs << "Size: " << rhs.getSize() << "Height: " << rhs.height << " Width: " << rhs.width << " Top: " << rhs.top << " Left:" << rhs.left << std::endl << "Position: " << rhs.getPosition() << std::endl;
+        return lhs << "Size: " << rhs.getSize()
+            << "Height: " << rhs.height
+            << " Width: " << rhs.width
+            << " Top: " << rhs.top
+            << " Left:" << rhs.left
+            << std::endl << "Position: " << rhs.getPosition() << std::endl;
     }
 
     std::ostream& operator<<(std::ostream& lhs, const sf::FloatRect& rhs)
     {
-        lhs << "Left: " << rhs.left
+        return lhs << "Left: " << rhs.left
             << ", Top: " << rhs.top
             << ", Width: " << rhs.width
             << ", Height: " << rhs.height << " Size: " << std::endl;
-
-        
-        return lhs;
     }
 
     std::ostream& operator<<(std::ostream& lhs, const sf::Vector2<float>& rhs)

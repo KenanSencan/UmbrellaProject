@@ -9,16 +9,20 @@ namespace ETG
     class Hero
     {
     public:
-        static sf::Vector2f Position;
+        static sf::Vector2f HeroPosition;
+
+        //Half of the current texture's width and height
         sf::Vector2f RelativeOrigin{0,0};
 
         //Hero state
         HeroStateEnum HeroState{};
         using animState = std::variant<RunEnum, DashEnum, IdleEnum>;
         AnimationKey AnimState{IdleEnum::Idle_Back};
+        std::string DebugRectString; // Add this line
+        sf::IntRect CurrTexRect;
 
     private:
-        float Speed{300.f};
+        float Speed{100.f};
         std::unordered_map<HeroStateEnum, AnimationManager> AnimManagerDict{};
         float Timer{}, DashTimer{};
         bool IsDashing{}, StartDashTimer{}, DashOnce{};
@@ -30,6 +34,8 @@ namespace ETG
         //Hand
         sf::Vector2f HandPos;
         sf::Texture HandTex;
+        sf::Vector2f HandOrigin;
+        sf::Vector2f RelativeHandLoc{8,4};
         
         //Gun will come here
 
@@ -44,6 +50,13 @@ namespace ETG
         void Update();
         void Draw();
 
+        //Get hero bounds 
+        sf::FloatRect HeroBounds() const;
+
+        //Draw hero bounds
+        void DrawBounds() const;
+
+        void SetHandTexLoc();
 
     private:
         void SetAnimations();

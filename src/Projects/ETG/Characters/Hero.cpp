@@ -1,12 +1,14 @@
 #include "Hero.h"
 #include <iostream>
+
+#include "../Managers/DebugTexts.h"
 #include "../Managers/InputManager.h"
 
-sf::Vector2f ETG::Hero::Position = {0.f, 0.f};
+sf::Vector2f ETG::Hero::HeroPosition = {0.f, 0.f};
 
 ETG::Hero::Hero(const sf::Vector2f Position) : HandPos({}), HandTex({})
 {
-    ETG::Hero::Position = Position;
+    ETG::Hero::HeroPosition = Position;
 
     //Set hand tex file
     if (!HandTex.loadFromFile((std::filesystem::current_path().parent_path() / "Resources" / "Player" / "rogue_hand_001.PNG").string()))
@@ -22,14 +24,14 @@ void ETG::Hero::Update()
     if (InputManager::IsMoving() && !IsDashing)
     {
         HeroState = HeroStateEnum::Run;
-        Position += Globals::Normalize(InputManager::direction) * Speed * Globals::FrameTick;
+        HeroPosition += Globals::Normalize(InputManager::direction) * Speed * Globals::FrameTick;
     }
     else if (!InputManager::IsMoving() && !IsDashing) HeroState = HeroStateEnum::Idle;
     else if (IsDashing) HeroState = HeroStateEnum::Dash;
 
     //Set AnimState based on the HeroState
-    if      (HeroState == HeroStateEnum::Dash) AnimState = DashEnum::Dash_Back;
-    else if (HeroState == HeroStateEnum::Run)  AnimState = RunEnum::Run_Back;
+    if (HeroState == HeroStateEnum::Dash) AnimState = DashEnum::Dash_Back;
+    else if (HeroState == HeroStateEnum::Run) AnimState = RunEnum::Run_Back;
     else if (HeroState == HeroStateEnum::Idle) AnimState = IdleEnum::Idle_Back;
 
     //Update the animation based on the AnimState
@@ -37,38 +39,69 @@ void ETG::Hero::Update()
 
     //Set Origin to currently playing set animation's last texture's predefined origin. 
     RelativeOrigin = AnimManagerDict[HeroState].AnimationDict[AnimManagerDict[HeroState].LastKey].Origin;
-    HandPos = Position + RelativeOrigin + sf::Vector2f(HandRelativeLocX, 1);
+    HandPos = HeroPosition + RelativeOrigin;
 
     //Origin: 11.5 12
     //NOTE: commented print. At here create red rectangle around hero.
-    // const sf::IntRect CurrRect = AnimManagerDict[HeroState].AnimationDict[AnimState].CurrRect;
-    // std::cout << CurrRect;
-    // AnimManagerDict[HeroState].GetCurrentFrameAsTexture();
+    CurrTexRect = AnimManagerDict[HeroState].AnimationDict[AnimState].CurrRect;
 
-    // std::cout << std::distance()
+    SetHandTexLoc();
+    
+    DebugRectString = " Current Texture: Left: " + std::to_string(CurrTexRect.left) +
+        ", Top: " + std::to_string(CurrTexRect.top) +
+        ", Width: " + std::to_string(CurrTexRect.width) +
+        ", Height: " + std::to_string(CurrTexRect.height) +
+        ", Pos X: " + std::to_string(CurrTexRect.getPosition().x) +
+        " Pos Y: " + std::to_string(CurrTexRect.getPosition().y) +
+        ", Size X: " + std::to_string(CurrTexRect.getSize().x) +
+        ", Size Y: " + std::to_string(CurrTexRect.getSize().y);
 }
 
 void ETG::Hero::Draw()
 {
-    AnimManagerDict[HeroState].Draw(Position, 0.01f);
+    AnimManagerDict[HeroState].Draw(HeroPosition, 0.01f);
     Globals::Renderer::SimpleDraw(HandTex, HandPos);
 
-    //Temporarily 
-    if (Globals::DrawSinglePixelAtLoc(Position + RelativeOrigin)) return;
-    Globals::DrawSinglePixelAtLoc(Position);
+    Globals::DrawSinglePixelAtLoc(HeroPosition); //Center of the hero texture
+    if (Globals::DrawSinglePixelAtLoc({HeroPosition.x + 7,HeroPosition.y +  4})) return;
 
+    DrawBounds();
 }
+
+sf::FloatRect ETG::Hero::HeroBounds() const
+{
+    return {
+        HeroPosition.x - (float)CurrTexRect.width / 2.f, //Top-left X (RectLeft) 
+        HeroPosition.y - (float)CurrTexRect.height / 2.f, //Top-left Y (RectTop)
+        static_cast<float>(CurrTexRect.width), //Width (RectWidth)
+        static_cast<float>(CurrTexRect.height) //Height (RectHeight) 
+    };
+}
+
+void ETG::Hero::DrawBounds() const
+{
+    const sf::FloatRect Bounds = HeroBounds();
+    sf::RectangleShape boundsBox(sf::Vector2f(Bounds.width, Bounds.height));
+    boundsBox.setPosition(Bounds.left, Bounds.top);
+    boundsBox.setOutlineColor(sf::Color::Red);
+    boundsBox.setOutlineThickness(1.f);
+    boundsBox.setFillColor(sf::Color::Transparent);
+    Globals::Window->draw(boundsBox);
+}
+
+void ETG::Hero::SetHandTexLoc()
+{
+    HandPos = {HeroPosition.x + RelativeHandLoc.x,HeroPosition.y +  RelativeHandLoc.y};
+
+    //Set origin
+    //TODO: Doing like this feels so wrong. I should create a base class for objects that I should set their origins locations and it will streamline and manage overall drawable objects easier.
+    //TODO: They need to have variables like, SetVisibility, RelatieLocation, SetAttachment, Every drawable types will inherit this base class
+    HandPos.x -= (float)HandTex.getSize().x /2;
+    HandPos.y -= (float)HandTex.getSize().y /2;
+};
 
 void ETG::Hero::SetAnimations()
 {
-    //1. Somehow ensure origin is centered at the hero's center sprite. For now somehow left increasing so much. Fix that but I guess I will not need. SInce Height and Width already known
-    //print: Height: 24 Width: 23 Top: 0 left: 115.           Height and Width are known but Top and Left. Learn these
-
-    //Draw a circle to in origin to indicate the drawn origin
-
-
-    //2. Make the player playable. Convert everything to player properly
-    //3. I am sure there's a better way to handle textures. I made CreateSpriteSheet but in profiler, profile the optimization of CreateSpriteSheet. If necessary create new Sprite yourself.
     const auto runAnims = std::vector<Animation>{
         Animation::CreateSpriteSheet("Resources/Player/Run/Back", "rogue_run_back_hands_00", "PNG", 0.15f),
         Animation::CreateSpriteSheet("Resources/Player/Run/BackWard", "rogue_run_backward_00", "PNG", 0.15f),
