@@ -36,6 +36,7 @@ namespace ETG
 
             DrawDebugText("FPS: " + std::to_string(1 / Globals::FrameTick), window);
             DrawDebugText("Hero position: " + std::to_string(Hero::Position.x) + " " + std::to_string(Hero::Position.y), window);
+            DrawDebugText("Zoom Scale: " + std::to_string(InputManager::ZoomScale), window);
         }
 
         static void DrawDebugText(const std::string& str, sf::RenderWindow& window)

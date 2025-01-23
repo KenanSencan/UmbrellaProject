@@ -28,7 +28,6 @@ namespace ETG
         };
 
         std::cout << std::unitbuf;
-        std::cout << "FramePosition: " << std::to_string(FramePosition.x) + " " + std::to_string(FramePosition.y);
 
         GunPosition = {
             static_cast<int>(FramePosition.x + Frame.getSize().x / 2 - GunOffsetX),

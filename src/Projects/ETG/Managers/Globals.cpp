@@ -5,7 +5,6 @@
 
 namespace ETG::Globals
 {
-    
     float FrameTick = 0.0f;
     float ElapsedTimeSeconds = 0.0f;
     float DefaultScale = 1;
@@ -29,7 +28,7 @@ namespace ETG::Globals
 
         //NOTE: Temporary. Set camera Location and zoom. After enemy, UI, Gun, Hero are handled, better camera and hero locations will be implemented.   
         MainView = window->getDefaultView();
-        MainView.setCenter(150.f,150.f);
+        MainView.setCenter(150.f, 150.f);
         MainView.zoom(0.1f);
     }
 
@@ -50,7 +49,7 @@ namespace ETG::Globals
     {
         const float length = std::sqrt(vector.x * vector.x + vector.y * vector.y);
         if (length == 0) throw std::runtime_error("length is 0. Vector is: " + std::to_string(vector.x) + " " + std::to_string(vector.y));
-            
+
         return vector / length;
     }
 
@@ -61,7 +60,7 @@ namespace ETG::Globals
         if (!isLoaded)
         {
             sf::Image greenPixel;
-            greenPixel.create(1,1,sf::Color::Green);
+            greenPixel.create(1, 1, sf::Color::Green);
             if (!tex.loadFromImage(greenPixel)) return true;
             isLoaded = true;
         }
@@ -86,10 +85,9 @@ namespace ETG::Globals
 
         Globals::Window->draw(frame);
     }
-
-    
 }
 
+//Operator overloads
 namespace ETG
 {
     std::ostream& operator<<(std::ostream& lhs, const sf::Vector2<int>& rhs)
@@ -102,4 +100,19 @@ namespace ETG
         return lhs << "Size: " << rhs.getSize() << "Height: " << rhs.height << " Width: " << rhs.width << " Top: " << rhs.top << " Left:" << rhs.left << std::endl << "Position: " << rhs.getPosition() << std::endl;
     }
 
+    std::ostream& operator<<(std::ostream& lhs, const sf::FloatRect& rhs)
+    {
+        lhs << "Left: " << rhs.left
+            << ", Top: " << rhs.top
+            << ", Width: " << rhs.width
+            << ", Height: " << rhs.height << " Size: " << std::endl;
+
+        
+        return lhs;
+    }
+
+    std::ostream& operator<<(std::ostream& lhs, const sf::Vector2<float>& rhs)
+    {
+        return lhs << "X: " << rhs.x << " Y: " << rhs.y << std::endl;
+    };
 }

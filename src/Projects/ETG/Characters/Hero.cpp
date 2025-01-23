@@ -40,15 +40,12 @@ void ETG::Hero::Update()
     HandPos = Position + RelativeOrigin + sf::Vector2f(HandRelativeLocX, 1);
 
     //Origin: 11.5 12
-    const sf::IntRect CurrRect = AnimManagerDict[HeroState].AnimationDict[AnimState].CurrRect;
-    std::cout << CurrRect;
-
-    //Draw straight lines around the player. Also create it in Globals folder if you can. Read again Rect printing it's important
-    //But before that let's create Zooming Functionality.  
+    //NOTE: commented print. At here create red rectangle around hero.
+    // const sf::IntRect CurrRect = AnimManagerDict[HeroState].AnimationDict[AnimState].CurrRect;
+    // std::cout << CurrRect;
     // AnimManagerDict[HeroState].GetCurrentFrameAsTexture();
-    
-    sf::Image image = AnimManagerDict[HeroState].LastTexture.copyToImage();
-    image.saveToFile("C:/Users/Selviniah/Music/Test.png");
+
+    // std::cout << std::distance()
 }
 
 void ETG::Hero::Draw()
