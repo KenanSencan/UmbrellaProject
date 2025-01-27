@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <SFML/System/Vector2.hpp>
 #include "../Animation/AnimationManager.h"
+#include "../Managers/Misc.h"
 #include "../Managers/StateEnums.h"
 
 namespace ETG
@@ -21,6 +22,9 @@ namespace ETG
         std::string DebugRectString; // Add this line
         sf::IntRect CurrTexRect;
 
+        static float MouseAngle;
+        static Direction CurrentDirection;
+
     private:
         float Speed{100.f};
         std::unordered_map<HeroStateEnum, AnimationManager> AnimManagerDict{};
@@ -29,6 +33,7 @@ namespace ETG
         int BeforeLerpX{}, BeforeLerpY{};
         int DashAmount{}, DashCoolDown{};
         sf::Texture RedPixel;
+        sf::Texture CurrentTex;
         float Rotation{}, angleInDegrees{};
 
         //Hand
@@ -45,22 +50,33 @@ namespace ETG
         RunEnum RunEnum{};
         float HandRelativeLocX{6.0};
 
+        //Directions
+        std::unordered_map<std::pair<int,int>,Direction, PairHash> DirectionMap{};
+    
     public:
         explicit Hero(sf::Vector2f Position);
+        void SetMouseHandle();
+        void GetIdleDirectionEnum(ETG::Direction currDir);
+        void GetRunEnum(ETG::Direction currDir);
         void Update();
         void Draw();
 
+        //Flip hero and hand sprites
+        void FlipSprites(AnimationManager::AnimationMap::mapped_type& CurrAnimState);
+
         //Get hero bounds 
         sf::FloatRect HeroBounds() const;
-
-        //Draw hero bounds
-        void DrawBounds() const;
 
         void SetHandTexLoc();
 
     private:
         void SetAnimations();
+        //Draw hero bounds
+        void DrawBounds() const;
 
+        void SetRanges();
+        Direction GetDirectionFromAngle() const;
+        static enum DashEnum GetDashDirectionEnum();
     };
 
 }

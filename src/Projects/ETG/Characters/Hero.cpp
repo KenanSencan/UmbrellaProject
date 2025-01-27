@@ -3,18 +3,47 @@
 
 #include "../Managers/DebugTexts.h"
 #include "../Managers/InputManager.h"
+#include "../Managers/Misc.h"
 
 sf::Vector2f ETG::Hero::HeroPosition = {0.f, 0.f};
+float ETG::Hero::MouseAngle = 0;
+ETG::Direction ETG::Hero::CurrentDirection{};
 
 ETG::Hero::Hero(const sf::Vector2f Position) : HandPos({}), HandTex({})
 {
-    ETG::Hero::HeroPosition = Position;
+    HeroPosition = Position;
 
     //Set hand tex file
     if (!HandTex.loadFromFile((std::filesystem::current_path().parent_path() / "Resources" / "Player" / "rogue_hand_001.PNG").string()))
         std::cerr << "Failed to load texture " << std::endl;
 
     SetAnimations();
+    SetRanges();
+}
+
+void ETG::Hero::SetMouseHandle()
+{
+    MouseAngle = Misc::RadiansToDegrees(InputManager::GetMouseAngleRelativeToHero());
+    if (MouseAngle < 0) MouseAngle += 360;
+}
+
+void ETG::Hero::FlipSprites(AnimationManager::AnimationMap::mapped_type& CurrAnimState)
+{
+    //Firstly flip hero and hand
+    if (CurrentDirection == Direction::Right || CurrentDirection == Direction::FrontHandRight || CurrentDirection == Direction::BackDiagonalRight || CurrentDirection == Direction::BackHandRight)
+    {
+        CurrAnimState.flipX = 1.f;
+        RelativeHandLoc = {8.f, 5.f};
+    }
+    else
+    {
+        CurrAnimState.flipX = -1.f;
+        RelativeHandLoc = {-8.f, 5.f};
+    }
+
+    //Flip hand again
+    if (CurrentDirection == Direction::BackDiagonalRight) RelativeHandLoc = RelativeHandLoc = {-8.f, 5.f};
+    if (CurrentDirection == Direction::BackDiagonalLeft) RelativeHandLoc = RelativeHandLoc = {8.f, 5.f};
 }
 
 void ETG::Hero::Update()
@@ -29,24 +58,16 @@ void ETG::Hero::Update()
     else if (!InputManager::IsMoving() && !IsDashing) HeroState = HeroStateEnum::Idle;
     else if (IsDashing) HeroState = HeroStateEnum::Dash;
 
-    //Set AnimState based on the HeroState
-    if (HeroState == HeroStateEnum::Dash) AnimState = DashEnum::Dash_Back;
-    else if (HeroState == HeroStateEnum::Run) AnimState = RunEnum::Run_Back;
-    else if (HeroState == HeroStateEnum::Idle) AnimState = IdleEnum::Idle_Back;
-
-    //Update the animation based on the AnimState
-    AnimManagerDict[HeroState].Update(AnimState);
 
     //Set Origin to currently playing set animation's last texture's predefined origin. 
     RelativeOrigin = AnimManagerDict[HeroState].AnimationDict[AnimManagerDict[HeroState].LastKey].Origin;
-    HandPos = HeroPosition + RelativeOrigin;
 
-    //Origin: 11.5 12
-    //NOTE: commented print. At here create red rectangle around hero.
-    CurrTexRect = AnimManagerDict[HeroState].AnimationDict[AnimState].CurrRect;
-
+    //Set current text and it's rect
+    auto& CurrAnimState = AnimManagerDict[HeroState].AnimationDict[AnimState];
+    CurrTexRect = CurrAnimState.CurrRect;
+    CurrentTex = CurrAnimState.GetCurrentFrameAsTexture();
     SetHandTexLoc();
-    
+
     DebugRectString = " Current Texture: Left: " + std::to_string(CurrTexRect.left) +
         ", Top: " + std::to_string(CurrTexRect.top) +
         ", Width: " + std::to_string(CurrTexRect.width) +
@@ -55,6 +76,29 @@ void ETG::Hero::Update()
         " Pos Y: " + std::to_string(CurrTexRect.getPosition().y) +
         ", Size X: " + std::to_string(CurrTexRect.getSize().x) +
         ", Size Y: " + std::to_string(CurrTexRect.getSize().y);
+
+    //Set AnimState based on the HeroState and mouse position.
+    SetMouseHandle();
+    CurrentDirection = GetDirectionFromAngle();
+
+    if (HeroState == HeroStateEnum::Dash)
+    {
+        AnimState = GetDashDirectionEnum();
+    }
+    else if (HeroState == HeroStateEnum::Run)
+    {
+        GetRunEnum(CurrentDirection);
+    }
+    else if (HeroState == HeroStateEnum::Idle)
+    {
+        GetIdleDirectionEnum(CurrentDirection);
+    }
+
+    // Set hand location and flip character
+    FlipSprites(CurrAnimState);
+
+    //Always update the animation lastly
+    AnimManagerDict[HeroState].Update(AnimState);
 }
 
 void ETG::Hero::Draw()
@@ -63,7 +107,7 @@ void ETG::Hero::Draw()
     Globals::Renderer::SimpleDraw(HandTex, HandPos);
 
     Globals::DrawSinglePixelAtLoc(HeroPosition); //Center of the hero texture
-    if (Globals::DrawSinglePixelAtLoc({HeroPosition.x + 7,HeroPosition.y +  4})) return;
+    if (Globals::DrawSinglePixelAtLoc({HeroPosition.x + 7, HeroPosition.y + 4})) return;
 
     DrawBounds();
 }
@@ -91,37 +135,37 @@ void ETG::Hero::DrawBounds() const
 
 void ETG::Hero::SetHandTexLoc()
 {
-    HandPos = {HeroPosition.x + RelativeHandLoc.x,HeroPosition.y +  RelativeHandLoc.y};
+    HandPos = HeroPosition + RelativeHandLoc;
 
     //Set origin
     //TODO: Doing like this feels so wrong. I should create a base class for objects that I should set their origins locations and it will streamline and manage overall drawable objects easier.
-    //TODO: They need to have variables like, SetVisibility, RelatieLocation, SetAttachment, Every drawable types will inherit this base class
-    HandPos.x -= (float)HandTex.getSize().x /2;
-    HandPos.y -= (float)HandTex.getSize().y /2;
-};
+    //TODO: They need to have variables like, SetVisibility, RelativeLocation, SetAttachment, Every drawable types will inherit this base class
+    HandPos.x -= (float)HandTex.getSize().x / 2;
+    HandPos.y -= (float)HandTex.getSize().y / 2;
+}
 
 void ETG::Hero::SetAnimations()
 {
     const auto runAnims = std::vector<Animation>{
-        Animation::CreateSpriteSheet("Resources/Player/Run/Back", "rogue_run_back_hands_00", "PNG", 0.15f),
-        Animation::CreateSpriteSheet("Resources/Player/Run/BackWard", "rogue_run_backward_00", "PNG", 0.15f),
-        Animation::CreateSpriteSheet("Resources/Player/Run/Forward", "rogue_run_forward_hands_00", "PNG", 0.15f),
-        Animation::CreateSpriteSheet("Resources/Player/Run/Front", "rogue_run_front_hands_00", "PNG", 0.15f),
+        Animation::CreateSpriteSheet("Resources/Player/Run/Back", "rogue_run_back_hands_001", "PNG", 0.15f),
+        Animation::CreateSpriteSheet("Resources/Player/Run/BackWard", "rogue_run_backward_001", "PNG", 0.15f),
+        Animation::CreateSpriteSheet("Resources/Player/Run/Forward", "rogue_run_forward_hands_001", "PNG", 0.15f),
+        Animation::CreateSpriteSheet("Resources/Player/Run/Front", "rogue_run_front_hands_001", "PNG", 0.15f),
     };
 
     const auto idleAnims = std::vector<Animation>{
-        Animation::CreateSpriteSheet("Resources/Player/Idle/Back", "rogue_idle_back_hand_left_00", "PNG", 0.15f),
-        Animation::CreateSpriteSheet("Resources/Player/Idle/BackWard", "rogue_idle_backwards_hands2_00", "PNG", 0.15f),
-        Animation::CreateSpriteSheet("Resources/Player/Idle/Front", "rogue_idle_front_hand_left_00", "PNG", 0.15f),
-        Animation::CreateSpriteSheet("Resources/Player/Idle/Right", "rogue_idle_hands_00", "PNG", 0.15f),
+        Animation::CreateSpriteSheet("Resources/Player/Idle/Back", "rogue_idle_back_hand_left_001", "PNG", 0.15f),
+        Animation::CreateSpriteSheet("Resources/Player/Idle/BackWard", "rogue_idle_backwards_hands2_001", "PNG", 0.15f),
+        Animation::CreateSpriteSheet("Resources/Player/Idle/Front", "rogue_idle_front_hand_left_001", "PNG", 0.15f),
+        Animation::CreateSpriteSheet("Resources/Player/Idle/Right", "rogue_idle_hands_001", "PNG", 0.15f),
     };
 
     const auto dashAnims = std::vector<Animation>{
-        Animation::CreateSpriteSheet("Resources/Player/Dash/Back", "rogue_dodge_back_00", "PNG", 0.15f),
-        Animation::CreateSpriteSheet("Resources/Player/Dash/BackWard", "rogue_dodge_left_back_00", "PNG", 0.15f),
-        Animation::CreateSpriteSheet("Resources/Player/Dash/Front", "rogue_dodge_front_00", "PNG", 0.15f),
-        Animation::CreateSpriteSheet("Resources/Player/Dash/Left", "rogue_dodge_left_00", "PNG", 0.15f),
-        Animation::CreateSpriteSheet("Resources/Player/Dash/Right", "rogue_dodge_left_00", "PNG", 0.15f),
+        Animation::CreateSpriteSheet("Resources/Player/Dash/Back", "rogue_dodge_back_001", "PNG", 0.15f),
+        Animation::CreateSpriteSheet("Resources/Player/Dash/BackWard", "rogue_dodge_left_back_001", "PNG", 0.15f),
+        Animation::CreateSpriteSheet("Resources/Player/Dash/Front", "rogue_dodge_front_001", "PNG", 0.15f),
+        Animation::CreateSpriteSheet("Resources/Player/Dash/Left", "rogue_dodge_left_001", "PNG", 0.15f),
+        Animation::CreateSpriteSheet("Resources/Player/Dash/Right", "rogue_dodge_left_001", "PNG", 0.15f),
     };
 
     auto animManagerRun = AnimationManager{};
@@ -149,4 +193,61 @@ void ETG::Hero::SetAnimations()
     }
     AnimManagerDict[HeroStateEnum::Dash] = animManagerDash;
 }
-;
+
+void ETG::Hero::SetRanges()
+{
+    DirectionMap[{0, 55}] = Direction::Right;
+    DirectionMap[{55, 75}] = Direction::FrontHandRight;
+    DirectionMap[{75, 115}] = Direction::FrontHandLeft;
+    DirectionMap[{115, 190}] = Direction::Left;
+    DirectionMap[{190, 245}] = Direction::BackDiagonalLeft;
+    DirectionMap[{245, 265}] = Direction::BackHandLeft;
+    DirectionMap[{265, 290}] = Direction::BackHandRight;
+    DirectionMap[{290, 310}] = Direction::BackDiagonalRight;
+    DirectionMap[{310, 360}] = Direction::Right; // Handle the wrap-around from 310-0
+}
+
+ETG::Direction ETG::Hero::GetDirectionFromAngle() const
+{
+    for (const auto& entry : DirectionMap)
+    {
+        const int rangeStart = entry.first.first;
+        const int rangeEnd = entry.first.second;
+
+        if (MouseAngle >= rangeStart && MouseAngle < rangeEnd)
+        {
+            return entry.second;
+        }
+    }
+
+    throw std::out_of_range("Mouse angle is out of defined ranges");
+}
+
+ETG::DashEnum ETG::Hero::GetDashDirectionEnum()
+{
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) && sf::Keyboard::isKeyPressed(sf::Keyboard::W)) return DashEnum::Dash_BackWard;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && sf::Keyboard::isKeyPressed(sf::Keyboard::W)) return DashEnum::Dash_BackWard;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && sf::Keyboard::isKeyPressed(sf::Keyboard::S)) return DashEnum::Dash_BackWard;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) && sf::Keyboard::isKeyPressed(sf::Keyboard::S)) return DashEnum::Dash_BackWard;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) return DashEnum::Dash_Left;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) return DashEnum::Dash_Right;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) return DashEnum::Dash_Back;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) return DashEnum::Dash_Front;
+    return DashEnum::Unknown;
+}
+
+void ETG::Hero::GetRunEnum(const Direction currDir)
+{
+    if (currDir == Direction::BackHandRight || currDir == Direction::BackHandLeft) AnimState = RunEnum::Run_Back;
+    if (currDir == Direction::BackDiagonalRight || currDir == Direction::BackDiagonalLeft) AnimState = RunEnum::Run_BackWard;
+    if (currDir == Direction::Right || currDir == Direction::Left) AnimState = RunEnum::Run_Forward;
+    if (currDir == Direction::FrontHandRight || currDir == Direction::FrontHandLeft) AnimState = RunEnum::Run_Front;
+}
+
+void ETG::Hero::GetIdleDirectionEnum(const Direction currDir)
+{
+    if (currDir == Direction::BackHandRight || currDir == Direction::BackHandLeft) AnimState = IdleEnum::Idle_Back;
+    if (currDir == Direction::BackDiagonalRight || currDir == Direction::BackDiagonalLeft) AnimState = IdleEnum::Idle_BackWard;
+    if (currDir == Direction::Right || currDir == Direction::Left) AnimState = IdleEnum::Idle_Right;
+    if (currDir == Direction::FrontHandRight || currDir == Direction::FrontHandLeft) AnimState = IdleEnum::Idle_Front;
+}

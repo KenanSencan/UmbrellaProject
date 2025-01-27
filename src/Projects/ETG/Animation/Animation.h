@@ -18,6 +18,7 @@ public:
     sf::Vector2f Origin;
     std::vector<sf::Rect<int>> FrameRects;
     bool IsValid = true;
+    float flipX = 1.0f;
 
     //NOTE: Rule of Five: Destructor, Copy Constructor, Copy Assignment, Move Constructor, Move Assignment
     Animation(const sf::Texture& texture, float eachFrameSpeed, int frameX, int frameY, int row = 1);

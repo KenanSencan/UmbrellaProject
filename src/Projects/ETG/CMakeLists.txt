@@ -14,6 +14,7 @@ add_executable(ETG main.cpp
         Animation/Animation.cpp
         Managers/GameManager.cpp
         Characters/Hero.cpp
+        Managers/Misc.cpp
 )
 
 # Easiest and fastest way is VCPKG 
@@ -30,8 +31,6 @@ target_compile_options(ETG PRIVATE
         $<$<CXX_COMPILER_ID:GNU>:-ftemplate-backtrace-limit=0 -ferror-limit=0>
         $<$<CXX_COMPILER_ID:Clang>:-ftemplate-backtrace-limit=0 -ferror-limit=0>
 )
-
-
 
 target_link_libraries(ETG PRIVATE
         sfml-audio

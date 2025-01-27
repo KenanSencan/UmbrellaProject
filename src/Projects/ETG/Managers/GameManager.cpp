@@ -44,7 +44,7 @@ void ETG::GameManager::Draw()
 
     //Debug texts will be drawn in screen coords. 
     DebugText::Draw(*Window);
-    ETG::DebugText::DrawDebugText(Hero.DebugRectString, *Window);
+    DebugText::DrawDebugText(Hero.DebugRectString, *Window);
 
     //Display the frame
     Window->display();

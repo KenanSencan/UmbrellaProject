@@ -7,6 +7,9 @@ int main()
 
     while (ETG::GameManager::IsRunning())
     {
+        //If window is not focused freeze the game  
+        if (!ETG::Globals::Window->hasFocus()) continue;
+        
         GM.Update();
         GM.Draw();        
     }

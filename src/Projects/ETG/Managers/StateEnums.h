@@ -23,7 +23,8 @@ namespace ETG
         Dash_BackWard,
         Dash_Front,
         Dash_Left,
-        Dash_Right
+        Dash_Right,
+        Unknown
     };
 
     enum class HeroStateEnum
@@ -32,6 +33,18 @@ namespace ETG
         Run,
         Dash,
         Die
+    };
+
+    enum class Direction
+    {
+        Right,
+        FrontHandRight,
+        FrontHandLeft,
+        Left,
+        BackDiagonalLeft,
+        BackHandLeft,
+        BackHandRight,
+        BackDiagonalRight
     };
 
     static std::vector<ETG::RunEnum> RunEnumValues = {

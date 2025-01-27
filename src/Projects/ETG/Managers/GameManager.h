@@ -13,7 +13,7 @@ namespace ETG
     private:
         //For now I don't have anything other than hero and UI  
         //Hero class
-        Hero Hero{sf::Vector2f(150, 150)};
+        Hero Hero{sf::Vector2f(0, 0)};
 
     public:
         UserInterface UI;

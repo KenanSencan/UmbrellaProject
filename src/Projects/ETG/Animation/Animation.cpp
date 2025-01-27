@@ -41,7 +41,7 @@ void Animation::Draw(const sf::Vector2f position, float layerDepth) const
     frame.setColor(sf::Color::White);
     frame.setRotation(0.f);
     frame.setOrigin(Origin);
-    frame.setScale(ETG::Globals::DefaultScale, ETG::Globals::DefaultScale); //Idk why I should set it 5f
+    frame.setScale(ETG::Globals::DefaultScale * flipX, ETG::Globals::DefaultScale); //Idk why I should set it 5f
 
     ETG::Globals::Window->draw(frame);
 }
@@ -91,11 +91,14 @@ Animation Animation::CreateSpriteSheet(const std::string& RelativePath, const st
 {
     //Initial setup
     std::vector<sf::Image> imageArr;
-    int counter = 1;
+    int counter;
     int totalWidth = 0, maxHeight = 0;
-    // const std::string AnimPath = (std::filesystem::current_path().parent_path() / "Resources" / "Player" / "Idle" / "Back" / "rogue_idle_back_hand_left_00").string();
-    const std::string basePath = (std::filesystem::current_path().parent_path() / RelativePath / FileName).string();
-    std::string filePath = basePath + std::to_string(counter) + "." + Extension;
+    std::string basePath = (std::filesystem::current_path().parent_path() / RelativePath / FileName).string();
+    char LastChar = basePath[basePath.length() -1];
+    counter = LastChar - '0';
+    basePath[basePath.length() -1] = counter + '0';
+    basePath.erase(basePath.length() -1, basePath.length() -2);
+    std::string filePath = basePath + std::to_string(counter) +   "." + Extension;
 
     //Check firstly if filepath is valid
     if (!std::filesystem::exists(filePath)) throw std::runtime_error("File not found at: " + filePath);

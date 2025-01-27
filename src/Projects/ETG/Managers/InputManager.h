@@ -20,27 +20,21 @@ namespace ETG
 
     public:
         inline static sf::Vector2f direction{};
-        inline static sf::Vector2f heroPosition{};
-        inline static sf::Vector2f heroOrigin{};
-        
         inline static float ZoomScale{};
-
-        // For drawing debug text
         inline static sf::Text debugText;
         inline static sf::Vector2f textPos{0.f, -20.f}; // Start within the window
+
+        //Relative to view's top left (0,0)
+        inline static sf::Vector2f ViewLocalMousePos;
+
+        //Mouse world position that doesn't account for View's transformations  
+        inline static sf::Vector2f WorldMousePos; 
 
         static sf::Vector2f GetDirection() { return direction; }
         static bool IsMoving() { return direction != sf::Vector2f(0.f, 0.f); }
 
-        static sf::Vector2f GetMouseWorldPosition(const sf::RenderWindow& window)
-        {
-            const sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
-            return window.mapPixelToCoords(pixelPos);
-        }
-
         static void Update()
         {
-            heroOrigin += heroPosition;
             ZoomScale = GetZoomScale(Globals::MainView, *Globals::Window);
 
             const float adjustedZoomFactor = AdjustZoomFactor();
@@ -61,15 +55,11 @@ namespace ETG
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) Globals::MainView.move(0, +adjustedMoveFactor);
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) Globals::MainView.move(+adjustedMoveFactor, 0);
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) Globals::MainView.move(-adjustedMoveFactor, 0);
+
+            ViewLocalMousePos = GetRelativeMousePos();
+            WorldMousePos = Globals::Window->mapPixelToCoords(sf::Mouse::getPosition(*Globals::Window), Globals::MainView);
         }
 
-        static float GetMouseAngleRelativeToHero(const sf::RenderWindow& window)
-        {
-            const sf::Vector2f diff = GetMouseWorldPosition(window) - heroPosition;
-            return std::atan2(diff.y, diff.x);
-        }
-
-        static void SetHeroPosition(const sf::Vector2f& pos) { heroPosition = pos; }
 
         static void InitializeDebugText()
         {
@@ -93,7 +83,7 @@ namespace ETG
         {
             const float scaleRatio = 10000.f / ZoomScale;
             float adjustedMoveFactor = ZoomFactor * std::sqrt(scaleRatio);
-            
+
             adjustedMoveFactor = std::clamp(adjustedMoveFactor, MinMoveSpeed, MaxMoveSpeed);
             return adjustedMoveFactor;
         }
@@ -105,5 +95,32 @@ namespace ETG
             adjustedZoomFactor = std::clamp(adjustedZoomFactor, MinScaleSpeed, MaxScaleSpeed);
             return adjustedZoomFactor;
         }
+
+        // In InputManager.h
+        static float GetMouseAngleRelativeToHero()
+        {
+            // Now calculate angle relative to the hero
+            const sf::Vector2f diff = WorldMousePos - Hero::HeroPosition;
+            const float angleRad = std::atan2(diff.y, diff.x);
+
+            return angleRad;
+        }
+
+        //I spent so much time to correctly get mouse position after zoom or move with View.  
+        static sf::Vector2f GetRelativeMousePos()
+        {
+            //Mouse world position
+            const sf::Vector2f MousePos = Globals::Window->mapPixelToCoords(sf::Mouse::getPosition(*Globals::Window), Globals::MainView);
+
+            // Calculate the top-left corner of the view in world coordinates
+            const sf::Vector2f viewTopLeft = Globals::MainView.getCenter() - (Globals::MainView.getSize() / 2.0f);
+
+            // Subtract the view's top-left to get relative mouse position
+            return MousePos - viewTopLeft;
+        }
+
+    private:
+        //Private constructor to prevent instantiation
+        InputManager() = delete;
     };
 }

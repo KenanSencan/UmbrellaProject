@@ -28,7 +28,7 @@ namespace ETG::Globals
 
         //NOTE: Temporary. Set camera Location and zoom. After enemy, UI, Gun, Hero are handled, better camera and hero locations will be implemented.   
         MainView = window->getDefaultView();
-        MainView.setCenter(150.f, 150.f);
+        MainView.setCenter(0.f, 0.f);
         MainView.zoom(0.1f);
     }
 
@@ -45,7 +45,7 @@ namespace ETG::Globals
     }
 
 
-    sf::Vector2f Normalize(const sf::Vector2f& vector)
+    sf::Vector2<float> Normalize(const sf::Vector2f& vector)
     {
         const float length = std::sqrt(vector.x * vector.x + vector.y * vector.y);
         if (length == 0) throw std::runtime_error("length is 0. Vector is: " + std::to_string(vector.x) + " " + std::to_string(vector.y));
@@ -74,6 +74,23 @@ namespace ETG::Globals
         // Draw the sprite
         Globals::Window->draw(frame);
         return false;
+    }
+
+    std::string StringifyDirection(Direction dir)
+    {
+        switch (dir)
+        {
+        case Direction::Right: return "Right";
+        case Direction::FrontHandRight: return "FrontHandRight";
+        case Direction::FrontHandLeft: return "FrontHandLeft";
+        case Direction::Left: return "Left";
+        case Direction::BackDiagonalLeft: return "BackDiagonalLeft";
+        case Direction::BackHandLeft: return "BackHandLeft";
+        case Direction::BackHandRight: return "BackHandRight";
+        case Direction::BackDiagonalRight: return "BackDiagonalRight";
+        }
+        // If there’s no match, return something
+        return "Unknown Direction";
     }
 
     void Renderer::SimpleDraw(const sf::Texture& tex, const sf::Vector2f& pos)

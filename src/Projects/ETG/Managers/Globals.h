@@ -5,8 +5,16 @@
 #include <memory>
 #include <filesystem>
 
+#include "StateEnums.h"
+
 namespace ETG::Globals
 {
+    class Renderer
+    {
+    public:
+        static void SimpleDraw(const sf::Texture& tex, const sf::Vector2f& pos);
+    };
+
     //Elapsed time in seconds
     extern float FrameTick;
     extern float ElapsedTimeSeconds;
@@ -28,14 +36,10 @@ namespace ETG::Globals
 
     //length: Compute the magnitude of the vector using the formula sqrt(x^2 + y^2)
     // Division: Divide the vector components by the magnitude to scale it to a unit vector (length 1).
-    sf::Vector2f Normalize(const sf::Vector2f& vector);
+    sf::Vector2<float> Normalize(const sf::Vector2f& vector);
     bool DrawSinglePixelAtLoc(const sf::Vector2f& Loc);
 
-    class Renderer
-    {
-    public:
-        static void SimpleDraw(const sf::Texture& tex, const sf::Vector2f& pos);
-    };
+    std::string StringifyDirection(Direction dir);
 }
 
 namespace ETG
