@@ -7,10 +7,6 @@
 #include <string>
 #include "Animation.h"
 #include "AnimationManager.h"
-#include "AnimationManager.h"
-#include "AnimationManager.h"
-#include "AnimationManager.h"
-#include "AnimationManager.h"
 #include "../Managers/Globals.h" // If you need to reference SFML window, etc.
 #include "../Managers/StateEnums.h"
 
@@ -20,7 +16,7 @@ struct always_false : std::false_type
 };
 
 //Variant necessary to provide hashing based on the given type.   
-using AnimationKey = std::variant<std::string, int, ETG::RunEnum, ETG::IdleEnum, ETG::DashEnum>; //, Study later to include: std::any
+using AnimationKey = std::variant<std::string, int, ETG::RunEnum, ETG::IdleEnum, ETG::DashEnum>;
 
 // 3) Custom hash + equality
 //Based on given key of variant, convert it to hash

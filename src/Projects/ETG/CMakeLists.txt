@@ -15,6 +15,8 @@ add_executable(ETG main.cpp
         Managers/GameManager.cpp
         Characters/Hero.cpp
         Managers/Misc.cpp
+        Characters/Components/AnimationComponent.h
+        Characters/Components/AnimationComponent.cpp
 )
 
 # Easiest and fastest way is VCPKG 
