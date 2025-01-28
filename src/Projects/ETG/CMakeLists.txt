@@ -17,6 +17,10 @@ add_executable(ETG main.cpp
         Managers/Misc.cpp
         Characters/Components/AnimationComponent.h
         Characters/Components/AnimationComponent.cpp
+        Characters/Components/InputComponent.cpp
+        Characters/Components/InputComponent.h
+        Characters/Components/MoveComponent.cpp
+        Characters/Components/MoveComponent.h
 )
 
 # Easiest and fastest way is VCPKG 

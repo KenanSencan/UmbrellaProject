@@ -4,6 +4,7 @@
 #include <cmath>
 #include "Globals.h"
 #include <iostream>
+#include "../Characters/Hero.h"
 
 namespace ETG
 {

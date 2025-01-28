@@ -1,10 +1,14 @@
 #pragma once
-#include <unordered_map>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics.hpp>
 #include "Components/AnimationComponent.h"
-#include "../Managers/Misc.h"
 #include "../Managers/StateEnums.h"
+#include "Components/MoveComponent.h"
+#include "Components/InputComponent.h"
+
+namespace ETG
+{
+}
 
 namespace ETG
 {
@@ -17,25 +21,24 @@ namespace ETG
 
         explicit Hero(sf::Vector2f Position);
         void Update();
-        void DrawHeroBounds() const;
         void Draw();
+        void DrawHeroBounds() const;
         sf::FloatRect HeroBounds() const;
+
+        HeroStateEnum CurrentHeroState{HeroStateEnum::Idle};
+        bool IsDashing = false;
 
     private:
         AnimationComponent AnimationComp;
-        float Speed{100.f};
-        bool IsDashing{};
+        InputComponent InputComp;
+        MoveComponent MoveComp;
+
         sf::Texture HandTex;
         sf::Vector2f HandPos;
         sf::Vector2f RelativeHandLoc{8, 4};
-        std::unordered_map<std::pair<int, int>, Direction, PairHash> DirectionMap{};
 
-        void SetMouseHandle();
-        void SetRanges();
-        Direction GetDirectionFromAngle() const;
-        DashEnum GetDashDirectionEnum();
-        static RunEnum GetRunEnum(Direction currDir);
         static IdleEnum GetIdleDirectionEnum(Direction currDir);
+        static RunEnum GetRunEnum(Direction currDir);
         void SetHandTexLoc();
     };
 }

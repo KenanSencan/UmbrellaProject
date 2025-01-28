@@ -1,8 +1,6 @@
 #include "Hero.h"
 #include <iostream>
-#include "../Managers/DebugTexts.h"
 #include "../Managers/InputManager.h"
-#include "../Managers/Misc.h"
 
 sf::Vector2f ETG::Hero::HeroPosition = {0.f, 0.f};
 float ETG::Hero::MouseAngle = 0;
@@ -13,47 +11,30 @@ ETG::Hero::Hero(const sf::Vector2f Position) : HandPos({}), HandTex({})
     HeroPosition = Position;
     if (!HandTex.loadFromFile((std::filesystem::current_path().parent_path() / "Resources" / "Player" / "rogue_hand_001.PNG").string()))
         std::cerr << "Failed to load hand texture" << std::endl;
-    SetRanges();
-}
-
-void ETG::Hero::SetMouseHandle()
-{
-    MouseAngle = Misc::RadiansToDegrees(InputManager::GetMouseAngleRelativeToHero());
-    if (MouseAngle < 0) MouseAngle += 360;
 }
 
 void ETG::Hero::Update()
 {
-    HeroStateEnum heroState = HeroStateEnum::Idle;
+    CurrentHeroState = HeroStateEnum::Idle;
     AnimationKey animState = IdleEnum::Idle_Back;
-
-    if (InputManager::IsMoving() && !IsDashing)
+    
+    InputComp.Update(*this);
+    MoveComp.UpdateMovement(*this);
+    
+    if (CurrentHeroState == HeroStateEnum::Dash)
     {
-        heroState = HeroStateEnum::Run;
-        HeroPosition += Globals::Normalize(InputManager::direction) * Speed * Globals::FrameTick;
+        animState = InputComponent::GetDashDirectionEnum();
     }
-    else if (IsDashing)
-    {
-        heroState = HeroStateEnum::Dash;
-    }
-
-    SetMouseHandle();
-    CurrentDirection = GetDirectionFromAngle();
-
-    if (heroState == HeroStateEnum::Dash)
-    {
-        animState = GetDashDirectionEnum();
-    }
-    else if (heroState == HeroStateEnum::Run)
+    else if (CurrentHeroState == HeroStateEnum::Run)
     {
         animState = GetRunEnum(CurrentDirection);
     }
-    else if (heroState == HeroStateEnum::Idle)
+    else if (CurrentHeroState == HeroStateEnum::Idle)
     {
         animState = GetIdleDirectionEnum(CurrentDirection);
     }
 
-    AnimationComp.Update(heroState, animState);
+    AnimationComp.Update(CurrentHeroState, animState);
     RelativeHandLoc = AnimationComp.FlipSprites(CurrentDirection);
     SetHandTexLoc();
 }
@@ -95,44 +76,6 @@ void ETG::Hero::SetHandTexLoc()
     HandPos = HeroPosition + RelativeHandLoc;
     HandPos.x -= static_cast<float>(HandTex.getSize().x) / 2;
     HandPos.y -= static_cast<float>(HandTex.getSize().y) / 2;
-}
-
-void ETG::Hero::SetRanges()
-{
-    DirectionMap[{0, 55}] = Direction::Right;
-    DirectionMap[{55, 75}] = Direction::FrontHandRight;
-    DirectionMap[{75, 115}] = Direction::FrontHandLeft;
-    DirectionMap[{115, 190}] = Direction::Left;
-    DirectionMap[{190, 245}] = Direction::BackDiagonalLeft;
-    DirectionMap[{245, 265}] = Direction::BackHandLeft;
-    DirectionMap[{265, 290}] = Direction::BackHandRight;
-    DirectionMap[{290, 310}] = Direction::BackDiagonalRight;
-    DirectionMap[{310, 360}] = Direction::Right;
-}
-
-ETG::Direction ETG::Hero::GetDirectionFromAngle() const
-{
-    for (const auto& entry : DirectionMap)
-    {
-        if (MouseAngle >= entry.first.first && MouseAngle < entry.first.second)
-        {
-            return entry.second;
-        }
-    }
-    throw std::out_of_range("Mouse angle is out of defined ranges");
-}
-
-ETG::DashEnum ETG::Hero::GetDashDirectionEnum()
-{
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) && sf::Keyboard::isKeyPressed(sf::Keyboard::W)) return DashEnum::Dash_BackWard;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && sf::Keyboard::isKeyPressed(sf::Keyboard::W)) return DashEnum::Dash_BackWard;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && sf::Keyboard::isKeyPressed(sf::Keyboard::S)) return DashEnum::Dash_BackWard;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) && sf::Keyboard::isKeyPressed(sf::Keyboard::S)) return DashEnum::Dash_BackWard;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) return DashEnum::Dash_Left;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) return DashEnum::Dash_Right;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) return DashEnum::Dash_Back;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) return DashEnum::Dash_Front;
-    return DashEnum::Unknown;
 }
 
 ETG::RunEnum ETG::Hero::GetRunEnum(const Direction currDir)
