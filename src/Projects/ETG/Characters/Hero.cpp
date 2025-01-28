@@ -15,7 +15,6 @@ ETG::Hero::Hero(const sf::Vector2f Position) : HandPos({}), HandTex({})
 
 void ETG::Hero::Update()
 {
-    CurrentHeroState = HeroStateEnum::Idle;
     AnimationKey animState = IdleEnum::Idle_Back;
     
     InputComp.Update(*this);
