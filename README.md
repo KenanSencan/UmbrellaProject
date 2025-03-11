@@ -1,7 +1,12 @@
-This project is only for experimenting cmake, benchmarking optimization for different solutions and learning Data Structure And Algorithms. In the future, I'will make algorithm visualizations.  
-
+This is an unbrella cmake projects that contains many subprojects. Every C++ file ending with `main` suffix will be converted to executable.   
+1. `src/DSA` is for data structure and algorithms. `CustomDS` imitating data structures from the standard library.  
+2. `src/ImportantConcepts` is to experiment C++ concepts 
+3. `src/Projects` are for small projects that are not related to the above two.
+ 
 # Clone the repository with submodules
-`git clone --recurse-submodules https://github.com/Selviniahh/CMakeSFMLProject.git`
+```
+git clone --recurse-submodules https://github.com/Selviniahh/CMakeSFMLProject.git
+```
 
 # Build the project
 1. ```cd CMakeSFMLProject && mkdir build && cd build```
