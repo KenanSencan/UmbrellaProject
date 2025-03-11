@@ -60,19 +60,6 @@ if (BuildType STREQUAL "FETCHCONTENT")
             GIT_TAG 2.6.x)
     FetchContent_MakeAvailable(SFML)
 
-    #After coming here after a long while, I don't know why specifically for fetch content, I only linking graphics but I had better leave it as is.  
-    target_link_libraries(main PRIVATE sfml-graphics)
-
-    # FLTK Fetch. (FLTK has been removed from the project) 
-    #    set(FLTK_COMMIT "branch-1.3" CACHE STRING "FLTK branch name, tag, or commit")
-    #    FetchContent_Declare(FLTK
-    #            GIT_REPOSITORY https://github.com/fltk/fltk
-    #            GIT_TAG "${FLTK_COMMIT}"
-    #    )
-    #    FetchContent_MakeAvailable(FLTK)
-    #    target_include_directories(main PRIVATE ${fltk_BINARY_DIR} ${fltk_SOURCE_DIR})
-    #    target_link_libraries(main PRIVATE fltk) # + fltk_gl fltk_images fltk_png fltk_jpeg fltk_z
-
     # Google benchmark Fetch
     set(BENCHMARK_ENABLE_TESTING OFF)
     FetchContent_Declare(googlebenchmark
@@ -96,16 +83,6 @@ elseif (BuildType STREQUAL "VCPKG")
     find_package(benchmark CONFIG REQUIRED)
     find_package(Threads REQUIRED)
     
-    target_link_libraries(main PRIVATE
-            sfml-audio
-            sfml-graphics
-            $<$<PLATFORM_ID:Windows>:sfml-main>  # Only link sfml-main on Windows
-            sfml-network
-            sfml-system
-            sfml-window
-            benchmark::benchmark 
-            OpenAL::OpenAL
-    )
     #FLTK has been removed from the project  
     #    target_link_libraries(main PRIVATE fltk fltk_gl fltk_forms fltk_images sfml-system sfml-window sfml-graphics sfml-network sfml-audio sfml-main benchmark::benchmark)
 
@@ -122,15 +99,7 @@ elseif (BuildType STREQUAL "SOURCEBUILD")
     #    target_link_libraries(main PRIVATE fltk fltk_gl fltk_forms fltk_images)
 
     add_subdirectory("${CMAKE_SOURCE_DIR}/dep/SFML")
-    target_include_directories(main PRIVATE ${CMAKE_SOURCE_DIR}/dep/SFML/include)
-    target_link_libraries(main PRIVATE
-            sfml-audio
-            sfml-graphics
-            $<$<PLATFORM_ID:Windows>:sfml-main>  # Only link sfml-main on Windows
-            sfml-network
-            sfml-system
-            sfml-window
-    )
+    
 #    "$<IF:
     #$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,18.1.7>, # Condition: Check if compiler version is >= 18.1.7
     #VERSION_GREATER,                                         # True value: Define VERSION_GREATER

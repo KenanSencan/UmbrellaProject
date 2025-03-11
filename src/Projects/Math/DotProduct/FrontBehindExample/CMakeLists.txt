@@ -8,7 +8,7 @@ project(ETG LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 
 # Specify only source files
-add_executable(ETG main.cpp)
+add_executable(ETG FrontBehindMain.cpp)
 
 # Easiest and fastest way is VCPKG 
 find_package(OpenAL REQUIRED)
