@@ -79,7 +79,7 @@ if (BuildType STREQUAL "FETCHCONTENT")
 elseif (BuildType STREQUAL "VCPKG")
     #    find_package(FLTK CONFIG REQUIRED )
     find_package(OpenAL CONFIG REQUIRED)
-    find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
+    find_package(SFML CONFIG REQUIRED system window graphics network audio)
     find_package(benchmark CONFIG REQUIRED)
     find_package(Threads REQUIRED)
     

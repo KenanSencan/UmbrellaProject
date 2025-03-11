@@ -36,6 +36,10 @@ include(cmake/PGO.cmake)
 add_subdirectory(src/DSA/CustomDS/MyVector)
 add_subdirectory(src/DSA/CustomDS/MyString)
 
+#VCPKG or cmake I don't know broken again for no reason. It always getting broken for no reason. It always annoying me for no reason. I hate vcpkg and cmake more than everything. 
+# If you so much care about these projects (probably not, you just wasted tons of your fucking time last year with all this bullshit cmake), just build their respective projects from source. I don't care about anything. The fucking error will stay as is and I will do nothing about it as if if I waste my time again to fix, somethin will change
+#add_subdirectory(src/Projects/ReflectionExample)
+
 
 #This is for ImportantConcepts 
 add_subdirectory(src/ImportantConcepts)
