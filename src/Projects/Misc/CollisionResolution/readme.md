@@ -1,0 +1,1 @@
+Move with arrow keys. Get closer to the green item 
