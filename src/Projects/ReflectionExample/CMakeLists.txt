@@ -17,10 +17,10 @@ find_package(SFML CONFIG REQUIRED system window graphics network audio)
 find_package(Threads REQUIRED)
 find_package(ImGui-SFML CONFIG REQUIRED)
 find_package(boost_describe CONFIG REQUIRED)
-find_package(boost_json CONFIG REQUIRED)
+#find_package(boost_json CONFIG REQUIRED)
 
 # Get all cpp files recursively from the src directory
-file(GLOB_RECURSE ALL_CPP_FILES "${CMAKE_SOURCE_DIR}/src/*.cpp")
+file(GLOB_RECURSE ALL_CPP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 # Define the list of libraries to link against
 set(REQUIRED_LIBRARIES
@@ -32,7 +32,7 @@ set(REQUIRED_LIBRARIES
         sfml-window
         ImGui-SFML::ImGui-SFML
         Boost::describe
-        Boost::json
+#        Boost::json
 )
 
 # Create an executable for each cpp file

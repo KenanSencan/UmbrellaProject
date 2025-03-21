@@ -8,10 +8,10 @@ project(FourCorner LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 
 # Specify only source files
-add_executable(FourCorner DelegateMain.cpp)
+add_executable(FourCorner FourCorner.cpp)
 
 # Easiest and fastest way is VCPKG 
-find_package(OpenAL REQUIRED)
+#find_package(OpenAL REQUIRED)
 find_package(SFML CONFIG REQUIRED system window graphics network audio)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND "${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC")

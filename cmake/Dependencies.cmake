@@ -37,7 +37,7 @@ foreach (MAIN_FILE ${MAIN_FILES})
     #I am not sure this is right way to handle inclusion. There's custom mimic for STL. Standalone executables often using these but I am not really sure how the performance would be affected when the includes get bigger.
     #TODO:  I need to later on find better resolution for here 
     target_include_directories(${EXECUTABLE_NAME} PRIVATE ${ALL_INCLUDE_DIRS})
-    
+
     #IF custom STL desired, include and link.
     if (${CUSTOM_STD} STREQUAL "ON")
         target_link_libraries(${EXECUTABLE_NAME} PRIVATE c++ c++abi unwind)
@@ -82,13 +82,16 @@ elseif (BuildType STREQUAL "VCPKG")
     find_package(SFML CONFIG REQUIRED system window graphics network audio)
     find_package(benchmark CONFIG REQUIRED)
     find_package(Threads REQUIRED)
-    
+    find_package(boost_type_index CONFIG REQUIRED)
+    find_package(boost_describe CONFIG REQUIRED)
+    find_package(boost_mpl REQUIRED CONFIG)
+
     #FLTK has been removed from the project  
     #    target_link_libraries(main PRIVATE fltk fltk_gl fltk_forms fltk_images sfml-system sfml-window sfml-graphics sfml-network sfml-audio sfml-main benchmark::benchmark)
 
     foreach (MAIN_FILE ${MAIN_FILES})
         get_filename_component(EXECUTABLE_NAME ${MAIN_FILE} NAME_WE)
-        target_link_libraries(${EXECUTABLE_NAME} PRIVATE benchmark::benchmark benchmark::benchmark_main Threads::Threads) 
+        target_link_libraries(${EXECUTABLE_NAME} PRIVATE benchmark::benchmark benchmark::benchmark_main Threads::Threads Boost::type_index Boost::describe Boost::mpl)
     endforeach ()
 
     # Make the dependency library building with SourceBuild
@@ -99,16 +102,6 @@ elseif (BuildType STREQUAL "SOURCEBUILD")
     #    target_link_libraries(main PRIVATE fltk fltk_gl fltk_forms fltk_images)
 
     add_subdirectory("${CMAKE_SOURCE_DIR}/dep/SFML")
-    
-#    "$<IF:
-    #$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,18.1.7>, # Condition: Check if compiler version is >= 18.1.7
-    #VERSION_GREATER,                                         # True value: Define VERSION_GREATER
-    #VERSION_NOT_GREATER                                       # False value: Define VERSION_NOT_GREATER
-    #>")
-    #"$<IF:$<CXX_COMPILER_ID:MSVC>,MSVC_DEFINED,MSVC_NOT_DEFINED>"
-    
-    #$<PLATFORM_ID:Windows> #1
-
     set(BENCHMARK_ENABLE_TESTING OFF)
     add_subdirectory("${CMAKE_SOURCE_DIR}/dep/benchmark")
 
@@ -119,3 +112,13 @@ elseif (BuildType STREQUAL "SOURCEBUILD")
 
     endforeach ()
 endif ()
+
+function(add_project_subdirectories base_dir)
+    file(GLOB_RECURSE CMAKE_FILES ${base_dir}/*/CMakeLists.txt)
+
+    foreach (CMAKE_FILE ${CMAKE_FILES})
+        get_filename_component(DIR ${CMAKE_FILE} DIRECTORY)
+        message(STATUS "Adding project subdirectory: ${DIR}")
+        add_subdirectory(${DIR})
+    endforeach ()
+endfunction()

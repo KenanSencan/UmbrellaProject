@@ -43,6 +43,7 @@ add_subdirectory(src/DSA/CustomDS/MyString)
 
 #This is for ImportantConcepts 
 add_subdirectory(src/ImportantConcepts)
+add_project_subdirectories(${CMAKE_SOURCE_DIR}/src/Projects)
 
 message(FLAGS ARE: ${CMAKE_CXX_FLAGS})
 

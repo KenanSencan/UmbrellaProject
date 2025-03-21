@@ -1,48 +1,53 @@
 #include <iostream>
 #include <ratio>
-//IMP: lvalue argument  
-// template <typename T, typename Arg>
-// T create(Arg& a)
-// {
-//     return T(a);
-// }
-//
-//IMP: Perfect Factory Method
-// template <typename T, typename Arg>
-// T create(const Arg& a)
-// { 
-//     return T(a);
-// }
+//NOTE: lvalue argument
+//Only accepts lvalues
+//Rejects rvalues (like literals or temporaries)
+template <typename T, typename Arg>
+T create(Arg& a)
+{
+    return T(a);
+}
 
-//IMP: rvalue only argument 
-// template <typename T, typename Arg>
-// T create(const Arg&& a)
-// {
-//     return T(a);
-// }
+//NOTE: Perfect Factory Method
+//Works with both lvalues and rvalues
+//But everything gets treated as const lvalue
+template <typename T, typename Arg>
+T create(const Arg& a)
+{
+    return T(a);
+}
 
-//IMP: Both rvalue and lvalue argument though it will favor for lvalue when rvalue given so not reccommended  
+//NOTE: rvalue only argument
+//Only accepts rvalues
+//The a inside becomes an lvalue (named value)
+template <typename T, typename Arg>
+T create(const Arg&& a)
+{
+    return T(a);
+}
+
+//NOTE: Both rvalue and lvalue argument though it will favor for lvalue when rvalue given so not reccommended
+//NOTE: This is the most dangerous one
+//Takes both lvalues and rvalues
+// But a is always treated as lvalue inside function
 // template <typename T, typename Arg>
 // T create(Arg&& a)
 // {
 //     return T(a);
 // }
 
-//IMP: wrapper for rvalue and lvalue 
-// template <class T>
-// void wrapper(T&& a)
-// {
-//     create(std::forward<T>(a));
-// }
+// IMP: Even better better with variadic template
+//  template <typename T, typename... Args>
+//  T create(Args&&... args)
+//  {
+//      return T(std::forward<Args>(args)...);
+//  }
 
-//IMP: Even better better with variadic template
-// template <typename T, typename... Args>
-// T create(Args&&... args)
-// {
-//     return T(std::forward<Args>(args)...);
-// }
-
-//IMP: forwards arguments to constructor T, preserving value category (rvalue, lvalue) 
+//---------------------------------CORRECT PERFECT FORWARDING!!!!!!
+//NOTE: forwards arguments to constructor T, preserving value category (rvalue, lvalue)
+//This is the correct implementation using perfect forwarding
+//Preserves value category using std::forward
 template <typename T, typename Arg>
 T create(Arg&& a)
 {

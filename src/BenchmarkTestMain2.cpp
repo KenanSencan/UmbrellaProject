@@ -3,6 +3,7 @@
 //A[] = {3,3,4,2,4,4,2,4} Output: None. None of the elements are more frequent than the half of the size of the array
 //Being equal to size of the array is not acceptable it has to be minimum "(n / 2) + 1"  
 
+#include <cassert>
 #include <benchmark/benchmark.h>
 #include <iostream>
 #include <algorithm>

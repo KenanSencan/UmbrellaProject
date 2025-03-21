@@ -4,29 +4,26 @@ if (NOT DEFINED ENV{VCPKG_CMAKE})
 endif ()
 
 set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_CMAKE}" CACHE STRING "Vcpkg toolchain file")
-project(Interact LANGUAGES CXX)
+project(FrontBehind LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 
 # Specify only source files
-add_executable(Interact PickupMain.cpp)
+add_executable(FrontBehind FrontBehind.cpp)
 
 # Easiest and fastest way is VCPKG 
-find_package(OpenAL REQUIRED)
+#find_package(OpenAL REQUIRED)
 find_package(SFML CONFIG REQUIRED system window graphics network audio)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND "${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 endif ()
 
-target_compile_definitions(Interact PRIVATE RESOURCE_PATH="${CMAKE_SOURCE_DIR}")
-
-
-target_compile_options(Interact PRIVATE
+target_compile_options(FrontBehind PRIVATE
         $<$<CXX_COMPILER_ID:GNU>:-ftemplate-backtrace-limit=0 -ferror-limit=0>
         $<$<CXX_COMPILER_ID:Clang>:-ftemplate-backtrace-limit=0 -ferror-limit=0>
 )
 
-target_link_libraries(Interact PRIVATE
+target_link_libraries(FrontBehind PRIVATE
         sfml-audio
         sfml-graphics
         $<$<PLATFORM_ID:Windows>:sfml-main>  # Only link sfml-main on Windows

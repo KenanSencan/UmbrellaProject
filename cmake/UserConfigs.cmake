@@ -1,7 +1,7 @@
 # cmake/UserConfigs.cmake
 
 # Library dependency has 3 options  FETCHCONTENT, VCPKG, or SOURCEBUILD. Only these 3 option can be given. 
-set(BuildType "SourceBuild" CACHE STRING "Specify how to build the project: FetchContent, Vcpkg, or SourceBuild, by default SourceBuild is given")
+set(BuildType "Vcpkg" CACHE STRING "Specify how to build the project: FetchContent, Vcpkg, or SourceBuild, by default SourceBuild is given")
 set(BuildTypeEnum "FetchContent" "Vcpkg" "SourceBuild")
 
 # Convert elements to upper to be not case sensitive 
@@ -37,11 +37,11 @@ SET(CUSTOM_STD OFF CACHE BOOL "If custom STD is desired, enable this. Note that 
 if (${CUSTOM_STD} STREQUAL "ON")
     SET(CUSTOM_STD_RELEASE ON CACHE BOOL "IF CUSTOM_STD Desired. Configure this option to use release or debug mode.")
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-        message(WARNING "Custom STD LOC: /home/selviniah/Documents/llvm-project/build/include/c++/v1")
+        message(NOTICE "Custom STD LOC: /home/selviniah/Documents/llvm-project/build/include/c++/v1")
         set(STD_INCLUDE_DIR "/home/selviniah/Documents/llvm-project/build/include/c++/v1")
         set(STD_LIB_DIR "/home/selviniah/Documents/llvm-project/build/lib")
     else ()
-        message(WARNING "Custom STD LOC: /home/selviniah/Documents/llvm-project/_InstallLibcxxDebug/include/c++/v1")
+        message(NOTICE "Custom STD LOC: /home/selviniah/Documents/llvm-project/_InstallLibcxxDebug/include/c++/v1")
         set(STD_INCLUDE_DIR "/home/selviniah/Documents/llvm-project/_InstallLibcxxDebug/include/c++/v1")
         set(STD_LIB_DIR "/home/selviniah/Documents/llvm-project/_InstallLibcxxDebug/lib")
     endif ()

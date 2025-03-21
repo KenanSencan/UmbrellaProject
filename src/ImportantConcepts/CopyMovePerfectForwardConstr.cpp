@@ -12,8 +12,6 @@ struct MyPair
     {
         std::cout << "general constructor with perfect forwarding\n";
     }
-
-    
     
     //Copy constructor. Copy from other to self 
     MyPair(const MyPair& other) : first(other.first), second(other.second)

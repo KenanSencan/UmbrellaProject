@@ -4,7 +4,7 @@ if (NOT DEFINED ENV{VCPKG_CMAKE})
 endif ()
 
 set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_CMAKE}" CACHE STRING "Vcpkg toolchain file")
-project(ETG LANGUAGES CXX)
+project(DearImguiExample LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 
 include(GNUInstallDirs)
@@ -13,7 +13,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
 # Specify only source files
-add_executable(ETG main.cpp)
+add_executable(DearImguiExample main.cpp)
 
 # Easiest and fastest way is VCPKG 
 find_package(SFML CONFIG REQUIRED system window graphics network audio)
@@ -27,12 +27,12 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND "${CMAKE_CXX_COMPILER_FRONTE
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 endif ()
 
-target_compile_options(ETG PRIVATE
+target_compile_options(DearImguiExample PRIVATE
         $<$<CXX_COMPILER_ID:GNU>:-ftemplate-backtrace-limit=0 -ferror-limit=0>
         $<$<CXX_COMPILER_ID:Clang>:-ftemplate-backtrace-limit=0 -ferror-limit=0>
 )
 
-target_link_libraries(ETG PRIVATE
+target_link_libraries(DearImguiExample PRIVATE
         sfml-audio
         sfml-graphics
         $<$<PLATFORM_ID:Windows>:sfml-main>  # Only link sfml-main on Windows
