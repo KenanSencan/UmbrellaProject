@@ -17,6 +17,3 @@ foreach (MAIN_CPP ${ALL_CPP_FILES})
             Boost::mpl
     )
 endforeach ()
-
-# Other concepts I made with extra classes instead of single cpp file 
-add_subdirectory(MoveConstrMove)

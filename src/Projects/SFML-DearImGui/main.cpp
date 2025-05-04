@@ -166,7 +166,7 @@ int main()
                     ImGui::DragFloat("SizeY: ", &SizeY);
                     ImGui::BeginTooltip();
 
-                    Frac = sin(ImGui::GetTime()) * 0.5 + 0.5f;
+                    Frac = std::sin(ImGui::GetTime()) * 0.5 + 0.5f;
                     ImGui::ProgressBar(Frac, ImVec2(SizeX, SizeY), std::format("{:.1f}%", Frac * 100.0f).c_str());
                     ImGui::EndTooltip();
                     ImGui::TreePop();

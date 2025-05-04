@@ -25,10 +25,6 @@ struct MyPair
         std::cout << "move constructor \n";
     };
 
-    //Default constructors. It will do what I already did above 
-    // MyPair(const MyPair& other) = default;
-    // MyPair(MyPair&& other) noexcept = default;
-
     T first{};
     U second{};
 };
@@ -44,7 +40,6 @@ int main()
 
     MyPair<int,int> p9 = p6; //copy constructor
     MyPair<int,int> g10 = std::move(p6); //move constructor
-    
 
     std::cout << p7.first << std::endl;
     std::cout << p7.second << std::endl;

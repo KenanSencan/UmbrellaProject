@@ -2,27 +2,31 @@
 #include <cmath>
 #include <filesystem>
 #include <string>
+#include <iostream>
 
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(800, 600), "Dot Product - Front/Behind Example");
     window.setFramerateLimit(60);
 
-    // For labeling the “in front” / “behind” text
+    // For labeling the "in front" / "behind" text
     sf::Font font;
-    if (!font.loadFromFile((std::filesystem::current_path().parent_path().parent_path().parent_path().parent_path() / "ETG" / "Resources" / "Fonts" / "SegoeUI.ttf").string())) return EXIT_FAILURE;
+    if (!font.loadFromFile((std::filesystem::current_path().parent_path()/ "SegoeUI.ttf").string())) return EXIT_FAILURE;
     sf::Text infoText("", font, 18);
     infoText.setFillColor(sf::Color::White);
 
     // Player setup
     sf::Vector2f playerPos(400.f, 300.f);        // Center of the window
-    sf::CircleShape player(20.f);                // A circle to represent the player
+    sf::CircleShape player(20.f);              // A circle to represent the player
     player.setFillColor(sf::Color::Blue);
     player.setOrigin(20.f, 20.f);
     player.setPosition(playerPos);
 
     // The player faces to the right (1,0) as the forward direction
-    const sf::Vector2f playerForward(1.f, 0.f);
+    sf::Vector2f HeroDirection(1.f, 0.f);
+    
+    // Rotation speed in radians per frame when E or Q is pressed
+    const float rotationSpeed = 0.05f;
 
     while (window.isOpen())
     {
@@ -31,6 +35,28 @@ int main()
         {
             if (evt.type == sf::Event::Closed)
                 window.close();
+        }
+
+        // Handle key presses for rotation
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+        {
+            // Rotate clockwise
+            float x = HeroDirection.x;
+            float y = HeroDirection.y;
+            HeroDirection.x = x * cos(-rotationSpeed) - y * sin(-rotationSpeed);
+            HeroDirection.y = x * sin(-rotationSpeed) + y * cos(-rotationSpeed);
+            
+            // Normalize to prevent drift
+            float length = sqrt(HeroDirection.x * HeroDirection.x + HeroDirection.y * HeroDirection.y);
+            HeroDirection.x /= length;
+            HeroDirection.y /= length;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
+        {
+            float x = HeroDirection.x;  // Save current x
+            float y = HeroDirection.y;  // Save current y
+            HeroDirection.x = x * cos(rotationSpeed) - y * sin(rotationSpeed);
+            HeroDirection.y = x * sin(rotationSpeed) + y * cos(rotationSpeed);
         }
 
         // Clear screen
@@ -43,7 +69,7 @@ int main()
         sf::Vector2f playerToEnemyRelative = enemyPos - playerPos;
 
         // Compute the dot product
-        float dot = (playerForward.x * playerToEnemyRelative.x) + (playerForward.y * playerToEnemyRelative.y);
+        float dot = (HeroDirection.x * playerToEnemyRelative.x) + (HeroDirection.y * playerToEnemyRelative.y);
 
         // Determine if the enemy is in front or behind
         // Positive dot => front, Negative dot => behind
@@ -56,7 +82,7 @@ int main()
         sf::VertexArray forwardArrow(sf::Lines, 2);
 
         forwardArrow[0].position = playerPos; // tail at player's center
-        forwardArrow[1].position = playerPos + (playerForward * 100.f); // 100 units ahead
+        forwardArrow[1].position = playerPos + (HeroDirection * 100.f); // 100 units ahead
         forwardArrow[0].color = sf::Color::Yellow;
         forwardArrow[1].color = sf::Color::Yellow;
         window.draw(forwardArrow);
@@ -83,6 +109,14 @@ int main()
 
         infoText.setString(message);
         infoText.setPosition(0.f, 75.f);
+        window.draw(infoText);
+        
+        infoText.setString("Hero Direction: " + std::to_string(HeroDirection.x) + " " + std::to_string(HeroDirection.y));
+        infoText.setPosition(0.f, 100.f);
+        window.draw(infoText);
+        
+        infoText.setString("Press Q to rotate counter-clockwise, E to rotate clockwise");
+        infoText.setPosition(0.f, 125.f);
         window.draw(infoText);
 
         window.display();
