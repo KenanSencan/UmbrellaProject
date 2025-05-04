@@ -7,7 +7,7 @@
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(800, 600), "Dot Product - Front/Behind Example");
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(170);
 
     // For labeling the "in front" / "behind" text
     sf::Font font;
@@ -32,10 +32,8 @@ int main()
     {
         sf::Event evt{};
         while (window.pollEvent(evt))
-        {
             if (evt.type == sf::Event::Closed)
                 window.close();
-        }
 
         // Handle key presses for rotation
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
@@ -57,6 +55,11 @@ int main()
             float y = HeroDirection.y;  // Save current y
             HeroDirection.x = x * cos(rotationSpeed) - y * sin(rotationSpeed);
             HeroDirection.y = x * sin(rotationSpeed) + y * cos(rotationSpeed);
+
+            // Normalize to prevent drift
+            float length = sqrt(HeroDirection.x * HeroDirection.x + HeroDirection.y * HeroDirection.y);
+            HeroDirection.x /= length;
+            HeroDirection.y /= length;
         }
 
         // Clear screen
@@ -65,15 +68,17 @@ int main()
         // Enemy is at mouse position
         sf::Vector2f enemyPos = sf::Vector2f(sf::Mouse::getPosition(window));
 
+        //NOTE: MAJOR CALCULATION STARTS HERE
         // Vector from player to enemy
         sf::Vector2f playerToEnemyRelative = enemyPos - playerPos;
 
-        // Compute the dot product
+        // Compute the dot product to learn if the enemy is in front or behind
         float dot = (HeroDirection.x * playerToEnemyRelative.x) + (HeroDirection.y * playerToEnemyRelative.y);
 
         // Determine if the enemy is in front or behind
         // Positive dot => front, Negative dot => behind
-        std::string message = (dot >= 0.f) ? "ENEMY IS IN FRONT" : "ENEMY IS BEHIND";
+        std::string FrontOrBehindMes = (dot >= 0.f) ? "ENEMY IS IN FRONT" : "ENEMY IS BEHIND";
+        //NOTE: MAJOR CALCULATION ENDS HERE
 
         // Update/draw player
         window.draw(player);
@@ -107,7 +112,7 @@ int main()
         infoText.setPosition(0.f, 50.f);
         window.draw(infoText);
 
-        infoText.setString(message);
+        infoText.setString(FrontOrBehindMes);
         infoText.setPosition(0.f, 75.f);
         window.draw(infoText);
         
