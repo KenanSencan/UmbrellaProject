@@ -9,9 +9,7 @@ set(CMAKE_CXX_STANDARD 23)
 
 # Specify only source files
 add_executable(FrontBehind FrontBehind.cpp
-        ../../HelperClass/Object.h
-        ../../HelperClass/HelperCollection.h
-        ../../HelperClass/MainTemplate.h)
+        ../../HelperClass/Math.h)
 
 # Easiest and fastest way is VCPKG 
 #find_package(OpenAL REQUIRED)
