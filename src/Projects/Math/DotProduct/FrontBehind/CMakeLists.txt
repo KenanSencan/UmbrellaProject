@@ -8,10 +8,7 @@ project(FrontBehind LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 
 # Specify only source files
-add_executable(FrontBehind FrontBehind.cpp
-        ../../HelperClass/Object.h
-        ../../HelperClass/HelperCollection.h
-        ../../HelperClass/MainTemplate.h)
+add_executable(FrontBehind FrontBehind.cpp)
 
 # Easiest and fastest way is VCPKG 
 #find_package(OpenAL REQUIRED)

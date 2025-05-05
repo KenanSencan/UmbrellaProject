@@ -4,11 +4,11 @@ if (NOT DEFINED ENV{VCPKG_CMAKE})
 endif ()
 
 set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_CMAKE}" CACHE STRING "Vcpkg toolchain file")
-project(FieldOfView LANGUAGES CXX)
+project(Fov LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
-
+                                                                                                                                                                                                                                                                                                     
 # Specify only source files
-add_executable(FieldOfView FieldView.cpp)
+add_executable(Fov Fov.cpp)
 
 # Easiest and fastest way is VCPKG 
 #find_package(OpenAL REQUIRED)
@@ -18,12 +18,12 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND "${CMAKE_CXX_COMPILER_FRONTE
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 endif ()
 
-target_compile_options(FieldOfView PRIVATE
+target_compile_options(Fov PRIVATE
         $<$<CXX_COMPILER_ID:GNU>:-ftemplate-backtrace-limit=0 -ferror-limit=0>
         $<$<CXX_COMPILER_ID:Clang>:-ftemplate-backtrace-limit=0 -ferror-limit=0>
 )
 
-target_link_libraries(FieldOfView PRIVATE
+target_link_libraries(Fov PRIVATE
         sfml-audio
         sfml-graphics
         $<$<PLATFORM_ID:Windows>:sfml-main>  # Only link sfml-main on Windows

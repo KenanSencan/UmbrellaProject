@@ -27,6 +27,7 @@ void MakeFrontBehindCalculationWithDotProduct(const sf::CircleShape& player, con
 }
 
 MAIN_TEMPLATE_GAME_START
+
     player = Object::CreateCircleShape({400.f, 300.f}, 20.f, sf::Color::Blue);
     enemy = Object::CreateCircleShape(sf::Vector2f(sf::Mouse::getPosition(window)), 5.f, sf::Color::Red);
 
