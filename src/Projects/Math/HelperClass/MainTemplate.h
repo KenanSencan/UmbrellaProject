@@ -12,7 +12,7 @@
 #define MAIN_TEMPLATE_GAME_START \
 int main() \
 { \
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Dot Product - Front/Behind Example"); \
+    sf::RenderWindow window(sf::VideoMode(1920, 1080), "Dot Product - Front/Behind Example"); \
     window.setFramerateLimit(170); \
     TEXT_POSITION_INIT \
     sf::Text infoText = Object::CreateText("", (std::filesystem::current_path().parent_path()/ "SegoeUI.ttf").string(), 16, sf::Color::White); \

@@ -13,7 +13,7 @@ constexpr float rotationSpeed = 0.05f;
 std::string FrontOrBehindMessage;
 float dot;
 sf::Vector2f playerToEnemyRelative;
-sf::CircleShape player;
+sf::CircleShape hero;
 sf::CircleShape enemy;
 
 //This is the major calculation
@@ -28,7 +28,7 @@ void MakeFrontBehindCalculationWithDotProduct(const sf::CircleShape& player, con
 
 MAIN_TEMPLATE_GAME_START
 
-    player = Object::CreateCircleShape({400.f, 300.f}, 20.f, sf::Color::Blue);
+    hero = Object::CreateCircleShape({400.f, 300.f}, 20.f, sf::Color::Blue);
     enemy = Object::CreateCircleShape(sf::Vector2f(sf::Mouse::getPosition(window)), 5.f, sf::Color::Red);
 
     // Handle key presses for rotation
@@ -48,15 +48,15 @@ MAIN_TEMPLATE_GAME_START
     }
 
     //NOTE: Main stuff happening at here. Calculate the dot product and determine if the enemy is in front or behind
-    MakeFrontBehindCalculationWithDotProduct(player, HeroDirection, enemy.getPosition(), playerToEnemyRelative, dot, FrontOrBehindMessage);
+    MakeFrontBehindCalculationWithDotProduct(hero, HeroDirection, enemy.getPosition(), playerToEnemyRelative, dot, FrontOrBehindMessage);
 
     //NOTE: TEXT Drawing
-    window.draw(player);
+    window.draw(hero);
     // Draw forward direction arrow 
     sf::VertexArray forwardArrow(sf::Lines, 2);
 
-    forwardArrow[0].position = player.getPosition(); // tail at player's center
-    forwardArrow[1].position = player.getPosition() + (HeroDirection * 100.f); // 100 units ahead
+    forwardArrow[0].position = hero.getPosition(); // tail at player's center
+    forwardArrow[1].position = hero.getPosition() + (HeroDirection * 100.f); // 100 units ahead
     forwardArrow[0].color = sf::Color::Yellow;
     forwardArrow[1].color = sf::Color::Yellow;
     window.draw(forwardArrow);
