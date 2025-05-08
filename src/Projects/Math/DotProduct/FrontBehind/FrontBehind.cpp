@@ -1,10 +1,10 @@
+#include "../../HelperClass/HelperCollection.h"
 #include <SFML/Graphics.hpp>
 #include <filesystem>
 #include <string>
-#include "../../HelperClass/HelperCollection.h"
 
-//NOTE: Global variables: 
-// The player faces to the right (1,0) as the forward direction
+// NOTE: Global variables:
+//  The player faces to the right (1,0) as the forward direction
 sf::Vector2f HeroDirection(1.f, 0.f);
 
 // Rotation speed in radians per frame when E or Q is pressed
@@ -16,8 +16,9 @@ sf::Vector2f playerToEnemyRelative;
 sf::CircleShape hero;
 sf::CircleShape enemy;
 
-//This is the major calculation
-void MakeFrontBehindCalculationWithDotProduct(const sf::CircleShape& player, const sf::Vector2f HeroDirection, const sf::Vector2f& enemyPos, sf::Vector2f& playerToEnemyRelative, float& dot, std::string& FrontOrBehindMes)
+// This is the major calculation
+void MakeFrontBehindCalculationWithDotProduct(const sf::CircleShape& player, const sf::Vector2f HeroDirection, const sf::Vector2f& enemyPos, sf::Vector2f& playerToEnemyRelative,
+                                              float& dot, std::string& FrontOrBehindMes)
 {
     playerToEnemyRelative = enemyPos - player.getPosition();
 
@@ -28,45 +29,47 @@ void MakeFrontBehindCalculationWithDotProduct(const sf::CircleShape& player, con
 
 MAIN_TEMPLATE_GAME_START
 
-    hero = Object::CreateCircleShape({400.f, 300.f}, 20.f, sf::Color::Blue);
-    enemy = Object::CreateCircleShape(sf::Vector2f(sf::Mouse::getPosition(window)), 5.f, sf::Color::Red);
+hero = Object::CreateCircleShape({400.f, 300.f}, 20.f, sf::Color::Blue);
+enemy = Object::CreateCircleShape(sf::Vector2f(sf::Mouse::getPosition(window)), 5.f, sf::Color::Red);
 
-    // Handle key presses for rotation
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
-    {
-        HeroDirection = Math::RotateVector(-rotationSpeed, HeroDirection);
+GAME_LOOP_START
 
-        // Normalize to prevent drift
-        Math::Normalize(HeroDirection);
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
-    {
-        HeroDirection = Math::RotateVector(rotationSpeed, HeroDirection);
+// Handle key presses for rotation
+if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+{
+    HeroDirection = Math::RotateVector(-rotationSpeed, HeroDirection);
 
-        // Normalize to prevent drift
-        Math::Normalize(HeroDirection);
-    }
+    // Normalize to prevent drift
+    Math::Normalize(HeroDirection);
+}
+if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
+{
+    HeroDirection = Math::RotateVector(rotationSpeed, HeroDirection);
 
-    //NOTE: Main stuff happening at here. Calculate the dot product and determine if the enemy is in front or behind
-    MakeFrontBehindCalculationWithDotProduct(hero, HeroDirection, enemy.getPosition(), playerToEnemyRelative, dot, FrontOrBehindMessage);
+    // Normalize to prevent drift
+    Math::Normalize(HeroDirection);
+}
 
-    //NOTE: TEXT Drawing
-    window.draw(hero);
-    // Draw forward direction arrow 
-    sf::VertexArray forwardArrow(sf::Lines, 2);
+// NOTE: Main stuff happening at here. Calculate the dot product and determine if the enemy is in front or behind
+MakeFrontBehindCalculationWithDotProduct(hero, HeroDirection, enemy.getPosition(), playerToEnemyRelative, dot, FrontOrBehindMessage);
 
-    forwardArrow[0].position = hero.getPosition(); // tail at player's center
-    forwardArrow[1].position = hero.getPosition() + (HeroDirection * 100.f); // 100 units ahead
-    forwardArrow[0].color = sf::Color::Yellow;
-    forwardArrow[1].color = sf::Color::Yellow;
-    window.draw(forwardArrow);
-    window.draw(enemy);
+// NOTE: TEXT Drawing
+window.draw(hero);
+// Draw forward direction arrow
+sf::VertexArray forwardArrow(sf::Lines, 2);
 
-    DISPLAY_TEXT("Enemy Mouse Position: " + std::to_string(enemy.getPosition().x) + " " + std::to_string(enemy.getPosition().y));
-    DISPLAY_TEXT("playerToEnemy: " + std::to_string(playerToEnemyRelative.x) + " " + std::to_string(playerToEnemyRelative.y));
-    DISPLAY_TEXT("Dot Product: " + std::to_string(dot));
-    DISPLAY_TEXT(FrontOrBehindMessage);
-    DISPLAY_TEXT("Hero Direction: " + std::to_string(HeroDirection.x) + " " + std::to_string(HeroDirection.y));
-    DISPLAY_TEXT("Press Q to rotate counter-clockwise, E to rotate clockwise");
+forwardArrow[0].position = hero.getPosition();                           // tail at player's center
+forwardArrow[1].position = hero.getPosition() + (HeroDirection * 100.f); // 100 units ahead
+forwardArrow[0].color = sf::Color::Yellow;
+forwardArrow[1].color = sf::Color::Yellow;
+window.draw(forwardArrow);
+window.draw(enemy);
+
+DISPLAY_TEXT("Enemy Mouse Position: " + std::to_string(enemy.getPosition().x) + " " + std::to_string(enemy.getPosition().y));
+DISPLAY_TEXT("playerToEnemy: " + std::to_string(playerToEnemyRelative.x) + " " + std::to_string(playerToEnemyRelative.y));
+DISPLAY_TEXT("Dot Product: " + std::to_string(dot));
+DISPLAY_TEXT(FrontOrBehindMessage);
+DISPLAY_TEXT("Hero Direction: " + std::to_string(HeroDirection.x) + " " + std::to_string(HeroDirection.y));
+DISPLAY_TEXT("Press Q to rotate counter-clockwise, E to rotate clockwise");
 
 MAIN_TEMPLATE_GAME_END

@@ -6,11 +6,11 @@
 #include <string>
 
 // Global variables
-sf::Vector2f Direction(1.f, 0.f);      // Forward direction
-sf::Vector2f Velocity(0.f, 0.f);     // Player's current velocity
-sf::Vector2f Position(400.f, 300.f); // Starting position
+sf::Vector2f Direction(1.f, 0.f);       // Forward direction
+sf::Vector2f Velocity(0.f, 0.f);        // Player's current velocity
+sf::Vector2f Position(400.f, 300.f);    // Starting position
 sf::Vector2f ProjectedVector(0.f, 0.f); // Starting position
-float ProjectedSpeed = 0.0f; // Speed in the forward direction
+float ProjectedSpeed = 0.0f;            // Speed in the forward direction
 
 // Movement settings
 constexpr float MoveSpeed = 1.1f;      // Base movement speed. It'll increase %10
@@ -18,7 +18,7 @@ constexpr float RotationSpeed = 0.05f; // Rotation speed in radians
 constexpr float Drag = 0.9f;           // Velocity drag (slows down over time)
 
 // Projection variables
-float LateralSpeed = 0.0f;   // Speed perpendicular to the forward direction
+float LateralSpeed = 0.0f;            // Speed perpendicular to the forward direction
 sf::Vector2f LateralVector(0.f, 0.f); // Starting position
 
 // Function to calculate velocity projection
@@ -29,7 +29,7 @@ void CalculateMovementProjection()
 
     // Calculate how much of the velocity is in the forward direction
     // This is the core of the movement projection - using dot product
-    //In short projectedSpeed means calculated speed in a specific direction. 
+    // In short projectedSpeed means calculated speed in a specific direction.
     ProjectedSpeed = Math::Dot(Velocity, Direction);
     ProjectedVector = Direction * ProjectedSpeed;
 
@@ -49,7 +49,7 @@ void DrawVelocityProjection(sf::RenderWindow& window, const sf::Vector2f& positi
     directionArrow[0].color = sf::Color::Yellow;
     directionArrow[1].color = sf::Color::Yellow;
     window.draw(directionArrow);
-    
+
     // Draw the full velocity vector (red)
     sf::VertexArray velocityLine(sf::Lines, 2);
     velocityLine[0].position = position;
@@ -85,6 +85,8 @@ void DrawVelocityProjection(sf::RenderWindow& window, const sf::Vector2f& positi
 MAIN_TEMPLATE_GAME_START
 
 sf::CircleShape hero = Object::CreateCircleShape(Position, 20.f, sf::Color::Blue);
+
+GAME_LOOP_START
 
 // NOTE: Handle rotation
 if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
@@ -139,7 +141,7 @@ DrawVelocityProjection(window, Position, Velocity, Direction);
 
 // Display debug information
 DISPLAY_TEXT("Position: " + std::to_string(Position.x) + ", " + std::to_string(Position.y));
-DISPLAY_TEXT("Velocity: " + std::to_string(Velocity.x) + ", " + std::to_string(Velocity.y) + " Magnitude: " + std::to_string(Math::Length(Velocity)) +"");
+DISPLAY_TEXT("Velocity: " + std::to_string(Velocity.x) + ", " + std::to_string(Velocity.y) + " Magnitude: " + std::to_string(Math::Length(Velocity)) + "");
 DISPLAY_TEXT("input Direction: " + std::to_string(inputDirection.x) + ", " + std::to_string(inputDirection.y));
 DISPLAY_TEXT("Hero Direction: " + std::to_string(Direction.x) + ", " + std::to_string(Direction.y));
 DISPLAY_TEXT("Forward (projected) Speed: " + std::to_string(ProjectedSpeed));
