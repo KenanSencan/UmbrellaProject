@@ -1,4 +1,4 @@
-#include "../../HelperClass/HelperCollection.h"
+#include "../../../HelperClass/HelperCollection.h"
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <string>
@@ -6,6 +6,7 @@
 // Global variables
 sf::Vector2f Position(400.f, 300.f); // Player position
 sf::Vector2f Velocity(0.f, 0.f);     // Player velocity
+float projectedDistance;
 
 // Movement settings
 constexpr float MoveSpeed = 1.0f; // Base movement speed
@@ -13,10 +14,11 @@ constexpr float Drag = 0.95f;     // Velocity drag
 constexpr float Gravity = 0.15f;  // Downward force
 
 // Slope variables
-sf::Vector2f SlopeNormal(0.f, -1.f);   // Normal vector of the slope (default: pointing up)
-sf::Vector2f SlopeStart(200.f, 500.f); // Start point of the slope
-sf::Vector2f SlopeEnd(800.f, 350.f);   // End point of the slope
+sf::Vector2f SlopeNormal(0.f, -1.f);    // Normal vector of the slope (default: pointing up)
+sf::Vector2f SlopeStart(200.f, 500.f);  // Start point of the slope
+sf::Vector2f SlopeEnd(800.f, 350.f);    // End point of the slope
 sf::Vector2f ClosestSlopePointToHero{}; // Closest point on the slope to the player
+float projectedVelOnSlop{};
 sf::Vector2f slopeDir{};
 bool OnSlope = false; // Is player on the slope?
 
@@ -40,8 +42,8 @@ bool CheckOnSlope()
     slopeDir = Math::Normalize(SlopeEnd - SlopeStart);
 
     // Project player position onto slope line
-    //We need to calculate how close the player is to the slope line. This line will ensure this  
-    float projectedDistance = Math::Dot(toPlayer, slopeDir);
+    // We need to calculate how close the player is to the slope line. This line will ensure this
+    projectedDistance = Math::Dot(toPlayer, slopeDir);
 
     // Total slope length
     float slopeLength = Math::Length(SlopeEnd - SlopeStart);
@@ -71,14 +73,14 @@ void HandleSlopeMovement()
         slopeDir = Math::Normalize(SlopeEnd - SlopeStart);
 
         // Project velocity onto slope
-        float projectedVelOnSlop = Math::Dot(Velocity, slopeDir);
+        projectedVelOnSlop = Math::Dot(Velocity, slopeDir);
 
         // Replace velocity with only the component along the slope
         // This constrains movement to the slope
         Velocity = slopeDir * projectedVelOnSlop;
 
         // Apply gravity along the slope (parallel component)
-        float downwardForce = Gravity * Math::Dot(sf::Vector2f(0.f, 1.f), slopeDir);
+        const float downwardForce = Math::Dot(sf::Vector2f(0,Gravity),slopeDir);
         Velocity += slopeDir * downwardForce;
     }
     else
@@ -121,25 +123,25 @@ void DrawSlope(sf::RenderWindow& window, sf::Text& text)
     text.setPosition(midpoint);
     window.draw(text);
 
-    //Slope direction
+    // Slope direction
     sf::VertexArray SlopeDirLine(sf::Lines, 2);
-    SlopeDirLine[0].position = midpoint + sf::Vector2f{0,200}; //this sec vector is all arbitrary
-    SlopeDirLine[1].position = midpoint +  sf::Vector2f{0,200} + (slopeDir * 50.f);
+    SlopeDirLine[0].position = midpoint + sf::Vector2f{0, 200}; // this sec vector is all arbitrary
+    SlopeDirLine[1].position = midpoint + sf::Vector2f{0, 200} + (slopeDir * 50.f);
     SlopeDirLine[0].color = sf::Color::Red;
     SlopeDirLine[1].color = sf::Color::Red;
     window.draw(SlopeDirLine);
 
-    //Velocity direction
+    // Velocity direction
     sf::VertexArray VelocityDirLine(sf::Lines, 2);
     auto velocityDir = Math::Normalize(Velocity);
-    VelocityDirLine[0].position = midpoint + sf::Vector2f{0,300}; //this sec vector is all arbitrary
-    VelocityDirLine[1].position = midpoint +  sf::Vector2f{0,300} + (Math::Normalize(velocityDir) * 50.f);
+    VelocityDirLine[0].position = midpoint + sf::Vector2f{0, 300}; // this sec vector is all arbitrary
+    VelocityDirLine[1].position = midpoint + sf::Vector2f{0, 300} + (Math::Normalize(velocityDir) * 50.f);
     VelocityDirLine[0].color = sf::Color::Cyan;
     VelocityDirLine[1].color = sf::Color::Cyan;
     window.draw(VelocityDirLine);
 
     text.setString("Slope Direction Line");
-    text.setPosition(midpoint + sf::Vector2f{0,200});
+    text.setPosition(midpoint + sf::Vector2f{0, 200});
     window.draw(text);
 
     sf::CircleShape closestPointCircle(5.f);
@@ -149,10 +151,10 @@ void DrawSlope(sf::RenderWindow& window, sf::Text& text)
     window.draw(closestPointCircle);
 
     text.setString("closestPointCircle: " + std::to_string(ClosestSlopePointToHero.x) + ", " + std::to_string(ClosestSlopePointToHero.y));
-    text.setPosition(ClosestSlopePointToHero );
+    text.setPosition(ClosestSlopePointToHero);
     text.setCharacterSize(12);
     window.draw(text);
-    
+
     text.setCharacterSize(18);
 }
 
@@ -168,14 +170,10 @@ GAME_LOOP_START
 
 // Handle input
 sf::Vector2f inputDirection(0.f, 0.f);
-if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-    inputDirection.y -= 1.f;
-if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-    inputDirection.y += 1.f;
-if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-    inputDirection.x -= 1.f;
-if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-    inputDirection.x += 1.f;
+if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) inputDirection.y -= 1.f;
+if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) inputDirection.y += 1.f;
+if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) inputDirection.x -= 1.f;
+if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) inputDirection.x += 1.f;
 
 // Apply input forces
 if (Math::Length(inputDirection) > 0)
@@ -190,6 +188,46 @@ OnSlope = CheckOnSlope();
 // Handle slope physics
 HandleSlopeMovement();
 
+// Display debug info
+DISPLAY_TEXT("DEEPLY STUDY HOW projectedDistance and projectedVelOnSlop WORKS")
+DISPLAY_TEXT("toPlayer = Position - SlopeStart;")
+DISPLAY_TEXT("projectedDistance = Math::Dot(toPlayer, slopeDir);")
+DISPLAY_TEXT("NOTE THAT ToPlayer is not normalized. SlopeDir is normalized");
+DISPLAY_TEXT("projectedDistance is like as if I did length between Hero Pos and SlopeStart but it goes negative when I go behind the slope start pos");
+DISPLAY_TEXT("So, if you want length between two points but also want to get negative when one object gets behind the other, do exactly what I am doing in this project");
+DISPLAY_TEXT("projectedDistance: Dot(toPlayer, slopeDir) " + std::to_string(projectedDistance));
+DISPLAY_TEXT("\n")
+
+DISPLAY_TEXT("1. Calculate dot product that I explained above")
+DISPLAY_TEXT("2. Calculate ClosestSlopePointToHero. It's: SlopeStart + (slopeDir * projectedDistance)")
+DISPLAY_TEXT("3. if Length(Position - ClosestSlopePointToHero) < 25.0f, then we are on the slope");
+DISPLAY_TEXT("\n")
+DISPLAY_TEXT("Position: " + std::to_string(Position.x) + ", " + std::to_string(Position.y));
+DISPLAY_TEXT("Slope slopeDirection: " + std::to_string(slopeDir.x) + ", " + std::to_string(slopeDir.y));
+DISPLAY_TEXT("On Slope: " + std::string(OnSlope ? "YES" : "NO"));
+DISPLAY_TEXT("Velocity: " + std::to_string(Velocity.x) + ", " + std::to_string(Velocity.y));
+
+// Slope movement analysis
+if (OnSlope)
+{
+    projectedVelOnSlop = Math::Dot(Velocity, slopeDir);
+    DISPLAY_TEXT("projectedVelOnSlop:" + std::to_string(projectedVelOnSlop));
+
+    std::string slopeStatus;
+    if (std::abs(projectedVelOnSlop) < 0.1f)
+        slopeStatus = "STATIONARY ON SLOPE";
+    else if (projectedVelOnSlop < 0)
+        slopeStatus = "SLIDING DOWNHILL";
+    else
+        slopeStatus = "CLIMBING UPHILL";
+
+    DISPLAY_TEXT("Slope Movement: " + slopeStatus);
+}
+else
+{
+    DISPLAY_TEXT("No Slope");
+}
+
 // Apply drag
 Velocity *= Drag;
 
@@ -201,36 +239,6 @@ player.setPosition(Position);
 DrawSlope(window, infoText);
 window.draw(player);
 
-// Display debug info
-DISPLAY_TEXT("Position: " + std::to_string(Position.x) + ", " + std::to_string(Position.y));
-DISPLAY_TEXT("Slope normal: " + std::to_string(SlopeNormal.x) + ", " + std::to_string(SlopeNormal.y));
-DISPLAY_TEXT("Slope slopeDirection: " + std::to_string(slopeDir.x) + ", " + std::to_string(slopeDir.y));
-DISPLAY_TEXT("On Slope: " + std::string(OnSlope ? "YES" : "NO"));
-DISPLAY_TEXT("Velocity: " + std::to_string(Velocity.x) + ", " + std::to_string(Velocity.y));
-
-// Slope movement analysis
-if (OnSlope)
-{
-    sf::Vector2f slopeDir = Math::Normalize(SlopeEnd - SlopeStart);
-    float velocityAlongSlope = Math::Dot(Velocity, slopeDir);
-
-    std::string slopeStatus;
-    if (std::abs(velocityAlongSlope) < 0.1f)
-        slopeStatus = "STATIONARY ON SLOPE";
-    else if (velocityAlongSlope > 0)
-        slopeStatus = "SLIDING DOWNHILL";
-    else
-        slopeStatus = "CLIMBING UPHILL";
-
-    DISPLAY_TEXT("Slope Movement: " + slopeStatus);
-    DISPLAY_TEXT("Speed Along Slope: " + std::to_string(velocityAlongSlope));
-}
-else
-{
-    DISPLAY_TEXT("No Slope");
-}
-
-DISPLAY_TEXT("Controls: WASD = move");
 DISPLAY_TEXT("Green line starts at center of the slope and represents SlopeNormal direction");
 DISPLAY_TEXT("Red line is slope direciton ");
 

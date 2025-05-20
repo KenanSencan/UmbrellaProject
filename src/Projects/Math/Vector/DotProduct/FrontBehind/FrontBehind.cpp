@@ -1,4 +1,4 @@
-#include "../../HelperClass/HelperCollection.h"
+#include "../../../HelperClass/HelperCollection.h"
 #include <SFML/Graphics.hpp>
 #include <filesystem>
 #include <string>
@@ -12,7 +12,7 @@ constexpr float rotationSpeed = 0.05f;
 
 std::string FrontOrBehindMessage;
 float dot;
-sf::Vector2f playerToEnemyRelative;
+sf::Vector2f playerToEnemy;
 sf::CircleShape hero;
 sf::CircleShape enemy;
 
@@ -51,7 +51,7 @@ if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
 }
 
 // NOTE: Main stuff happening at here. Calculate the dot product and determine if the enemy is in front or behind
-MakeFrontBehindCalculationWithDotProduct(hero, HeroDirection, enemy.getPosition(), playerToEnemyRelative, dot, FrontOrBehindMessage);
+MakeFrontBehindCalculationWithDotProduct(hero, HeroDirection, enemy.getPosition(), playerToEnemy, dot, FrontOrBehindMessage);
 
 // NOTE: TEXT Drawing
 window.draw(hero);
@@ -66,7 +66,7 @@ window.draw(forwardArrow);
 window.draw(enemy);
 
 DISPLAY_TEXT("Enemy Mouse Position: " + std::to_string(enemy.getPosition().x) + " " + std::to_string(enemy.getPosition().y));
-DISPLAY_TEXT("playerToEnemy: " + std::to_string(playerToEnemyRelative.x) + " " + std::to_string(playerToEnemyRelative.y));
+DISPLAY_TEXT("playerToEnemy: " + std::to_string(playerToEnemy.x) + " " + std::to_string(playerToEnemy.y));
 DISPLAY_TEXT("Dot Product: " + std::to_string(dot));
 DISPLAY_TEXT(FrontOrBehindMessage);
 DISPLAY_TEXT("Hero Direction: " + std::to_string(HeroDirection.x) + " " + std::to_string(HeroDirection.y));

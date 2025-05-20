@@ -1,0 +1,1 @@
+These projects are usually written with SFML. They trying to make a specific logic. 
