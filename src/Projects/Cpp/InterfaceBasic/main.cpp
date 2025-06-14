@@ -7,13 +7,15 @@
 
 MAIN_TEMPLATE_GAME_START
 
-std::vector<IDrawable*> drawables;
 
+std::vector<IDrawable*> drawables;
+//any IDrawable inherited object is suitable for here
 drawables.push_back(new CircleDrawable{100, 100, 50, sf::Color::Red});
 drawables.push_back(new RectangleDrawable{300, 200, 100, 50, sf::Color::Blue});
 drawables.push_back(new CircleDrawable{500, 300, 30, sf::Color::Green});
 
 auto* movingCircle = dynamic_cast<CircleDrawable*>(drawables[0]);
+auto* Rectangle = dynamic_cast<RectangleDrawable*>(drawables[1]); 
 
 GAME_LOOP_START
 

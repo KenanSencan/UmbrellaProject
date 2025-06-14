@@ -4,11 +4,12 @@ if (NOT DEFINED ENV{VCPKG_CMAKE})
 endif ()
 
 set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_CMAKE}" CACHE STRING "Vcpkg toolchain file")
-project(SimpleDiffuseLight LANGUAGES CXX)
+project(FormationBasic LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
                                                                                                                                                                                                                                                                                                      
 # Specify only source files
-add_executable(SimpleDiffuseLight main.cpp)
+add_executable(FormationBasic Formation.cpp
+        Unit.h)
 
 # Easiest and fastest way is VCPKG 
 #find_package(OpenAL REQUIRED)
@@ -18,12 +19,12 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND "${CMAKE_CXX_COMPILER_FRONTE
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 endif ()
 
-target_compile_options(SimpleDiffuseLight PRIVATE
+target_compile_options(FormationBasic PRIVATE
         $<$<CXX_COMPILER_ID:GNU>:-ftemplate-backtrace-limit=0>
         $<$<CXX_COMPILER_ID:Clang>:-ftemplate-backtrace-limit=0>
 )
 
-target_link_libraries(SimpleDiffuseLight PRIVATE
+target_link_libraries(FormationBasic PRIVATE
         sfml-audio
         sfml-graphics
         $<$<PLATFORM_ID:Windows>:sfml-main>  # Only link sfml-main on Windows

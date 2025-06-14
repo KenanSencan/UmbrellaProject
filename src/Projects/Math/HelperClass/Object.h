@@ -16,7 +16,7 @@ public:
 
     static sf::Text CreateText(const std::string& text, const std::string& fontPath, const unsigned int size, const sf::Color color)
     {
-        static sf::Font font;
+        static sf::Font font{};
         if (!font.loadFromFile(fontPath))
             throw std::runtime_error("Failed to load font from " + fontPath);
             
