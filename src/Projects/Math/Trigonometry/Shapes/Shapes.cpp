@@ -28,23 +28,71 @@ GAME_LOOP_START
 
 DrawCircle(window);
 
-//Draw triangle
-sf::Vector2f EqTrianglePos = CirclePos - sf::Vector2f{300.0f, 0};
-sf::Vector2f A = EqTrianglePos - sf::Vector2f{100.0f, 0};
-sf::Vector2f B = EqTrianglePos +  sf::Vector2f{100.0f, 0};
-sf::Vector2f C = Math::RotatePointAroundPoint(B,60 ,A);
+// Draw triangle
+{
+    sf::Vector2f EqTrianglePos = CirclePos - sf::Vector2f{300.0f, 0};
+    sf::Vector2f A = EqTrianglePos - sf::Vector2f{100.0f, 0};
+    sf::Vector2f B = EqTrianglePos + sf::Vector2f{100.0f, 0};
+    sf::Vector2f C = Math::RotateAroundPoint(B, 60, A);
+    sf::Vector2f D = Math::RotateAroundPoint(C, 60, B);
 
-sf::VertexArray filledTriangle(sf::TriangleFan);
-filledTriangle.append(sf::Vertex(A, sf::Color::White));
-filledTriangle.append(sf::Vertex(B, sf::Color::White));
-filledTriangle.append(sf::Vertex(C, sf::Color::White));
+    sf::VertexArray Triangle(sf::LinesStrip);
+    Triangle.append(sf::Vertex(A, sf::Color::White));
+    Triangle.append(sf::Vertex(B, sf::Color::White));
+    Triangle.append(sf::Vertex(C, sf::Color::White));
+    Triangle.append(sf::Vertex(D, sf::Color::White));
 
-sf::CircleShape pointA(5.0f);
-pointA.setFillColor(sf::Color::Green);
-pointA.setOrigin(5.0f, 5.0f);
-pointA.setPosition(EqTrianglePos);
-window.draw(pointA);
+    window.draw(Triangle);
 
-window.draw(filledTriangle);
+    // Triangle origin
+    sf::CircleShape TriOrigin(5.0f);
+    TriOrigin.setFillColor(sf::Color::Green);
+    TriOrigin.setOrigin(5.0f, 5.0f);
+    TriOrigin.setPosition(EqTrianglePos);
+    window.draw(TriOrigin);
+}
+
+// pentagon and star
+{
+    sf::Vector2f PentagonOr = CirclePos + sf::Vector2f{300.0f, 0};
+    sf::Vector2f B = PentagonOr + sf::Vector2f{100.0f, 0};
+    sf::Vector2f C = Math::RotateAroundPoint(B, 72.0f, PentagonOr);
+    sf::Vector2f D = Math::RotateAroundPoint(C, 72.0f, PentagonOr);
+    sf::Vector2f E = Math::RotateAroundPoint(D, 72.0f, PentagonOr);
+    sf::Vector2f F = Math::RotateAroundPoint(E, 72.0f, PentagonOr);
+    sf::Vector2f G = Math::RotateAroundPoint(F, 72.0f, PentagonOr);
+
+    sf::VertexArray Pentagon(sf::LinesStrip);
+    Pentagon.append(sf::Vertex(B, sf::Color::White));
+    Pentagon.append(sf::Vertex(C, sf::Color::White));
+    Pentagon.append(sf::Vertex(D, sf::Color::White));
+    Pentagon.append(sf::Vertex(E, sf::Color::White));
+    Pentagon.append(sf::Vertex(F, sf::Color::White));
+    Pentagon.append(sf::Vertex(G, sf::Color::White));
+
+    window.draw(Pentagon);
+}
+
+{
+    sf::Vector2f StarOr = CirclePos + sf::Vector2f{600.0f, 0};
+
+    sf::Vector2f B = StarOr + sf::Vector2f{100.0f, 0};
+    sf::Vector2f C = Math::RotateAroundPoint(B, 72.0f, StarOr);
+    sf::Vector2f D = Math::RotateAroundPoint(C, 72.0f, StarOr);
+    sf::Vector2f E = Math::RotateAroundPoint(D, 72.0f, StarOr);
+    sf::Vector2f F = Math::RotateAroundPoint(E, 72.0f, StarOr);
+    sf::Vector2f G = Math::RotateAroundPoint(F, 72.0f, StarOr);
+
+    sf::VertexArray Star(sf::LineStrip);
+    Star.append(sf::Vertex(B, sf::Color::White));
+    Star.append(sf::Vertex(D, sf::Color::White));
+    Star.append(sf::Vertex(F, sf::Color::White));
+    Star.append(sf::Vertex(C, sf::Color::White));
+    Star.append(sf::Vertex(E, sf::Color::White));
+    Star.append(sf::Vertex(G, sf::Color::White));
+    Star.append(sf::Vertex(B, sf::Color::White)); // Close the star
+
+    window.draw(Star);
+}
 
 MAIN_TEMPLATE_GAME_END

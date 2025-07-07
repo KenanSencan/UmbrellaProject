@@ -73,7 +73,26 @@ class Math
         return {static_cast<float>(x * cos(rotationRad) - y * sin(rotationRad)), static_cast<float>(x * sin(rotationRad) + y * cos(rotationRad))};
     }
 
-    [[nodiscard]] static sf::Vector2f RotatePointAroundPoint(const sf::Vector2f& pointToRotate, const float angleDegrees, const sf::Vector2f& centerOfRotation)
+    // NOTE: Vector Reflection
+    // Reflects a vector off a surface with given normal
+    // Formula: v' = v - 2 * (v · n) * n
+    // Where v is the incoming vector and n is the surface normal (must be normalized)
+    static sf::Vector2f VectorReflection(const sf::Vector2f& velocity, const sf::Vector2f& normal)
+    {
+        // Ensure normal is normalized
+        sf::Vector2f n = Normalize(normal);
+        
+        // Calculate dot product (how much velocity goes into the surface)
+        float dotProduct = Dot(velocity, n);
+        
+        // Apply reflection formula
+        return velocity - 2.0f * dotProduct * n;
+    }
+
+
+    //TODO: STUDY HERE
+    //CLOCKWISE
+    [[nodiscard]] static sf::Vector2f RotateAroundPoint(const sf::Vector2f& pointToRotate, const float angleDegrees, const sf::Vector2f& centerOfRotation)
     {
         // Convert degrees to radians
         const float angleRadians = DegreeToRadian(angleDegrees);
