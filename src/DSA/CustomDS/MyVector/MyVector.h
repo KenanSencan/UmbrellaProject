@@ -5,6 +5,7 @@
 #include <iostream>
 #include <algorithm>
 #include <stdexcept>
+#include <utility>  // Added for std::swap
 
 template <typename T>
 class MyVector
@@ -14,7 +15,7 @@ public:
     //NOTE:  1. default(normal) constructor,
     //NOTE:  2. destructor 
     //NOTE:  3. Copy constructor + copy assignment operator. Arg: (const SelfT& other) 
-    //NOTE:  4. Move constructor + move assignment operaqtor. Arg: (selfT&& other)    
+    //NOTE:  4. Move constructor + move assignment operator. Arg: (selfT&& other)    
   
     MyVector(); //normal constructor
     ~MyVector(); //destructor
@@ -62,6 +63,7 @@ private:
     // Helper Functions
     void Resize(int newCapacity);
     void copyFrom(const MyVector& other);
+    void swap(MyVector& other) noexcept; // Added for copy-and-swap idiom
 };
 
 //Normal constructor 
@@ -80,7 +82,7 @@ MyVector<T>::~MyVector()
 
 //Copy constructor
 template <typename T>
-MyVector<T>::MyVector(const MyVector& other)
+MyVector<T>::MyVector(const MyVector& other) : Arr(nullptr), CurrSize(0), Capacity(0)
 {
     std::cout << "Copy constructor called" << std::endl;
     copyFrom(other);
@@ -91,21 +93,23 @@ template <typename T>
 MyVector<T>::MyVector(MyVector&& other) noexcept
     : Arr(other.Arr), CurrSize(other.CurrSize), Capacity(other.Capacity)
 {
-    std::cout << "Move constructor" << std::endl;
+    std::cout << "Move constructor called" << std::endl;
     // Leave 'other' in a valid, empty state
     other.Arr = nullptr;
     other.CurrSize = 0;
     other.Capacity = 0;
 }
 
-//Copy assignment operator 
+//Copy assignment operator - Using copy-and-swap idiom for exception safety
 template <typename T>
 MyVector<T>& MyVector<T>::operator=(const MyVector& other)
 {
+    std::cout << "Copy assignment operator called" << std::endl;
     if (this != &other)
     {
-        delete[] Arr;
-        copyFrom(other);
+        MyVector temp(other); // Copy constructor creates a temporary
+        swap(temp); // Swap contents with temporary
+        // temp's destructor will clean up our old data
     }
     return *this;
 }
@@ -114,6 +118,7 @@ MyVector<T>& MyVector<T>::operator=(const MyVector& other)
 template <typename T>
 MyVector<T>& MyVector<T>::operator=(MyVector&& other) noexcept
 {
+    std::cout << "Move assignment operator called" << std::endl;
     if (this != &other)
     {
         delete[] Arr;
@@ -135,7 +140,7 @@ std::ostream& operator<<(std::ostream& os, const MyVector<T>& vec)
 {
     for (int i = 0; i < vec.CurrSize; ++i)
     {
-        os << "Index: " << i << " " << vec.Arr[i] << std::endl;
+        os << "Index: " << i << " Value: " << vec.Arr[i] << std::endl;
     }
     return os;
 }
@@ -152,10 +157,16 @@ void MyVector<T>::Add(const T& value)
     Arr[CurrSize++] = value;
 }
 
+// Fixed Insert method - now allows insertion at the end (index == CurrSize)
 template <typename T>
 void MyVector<T>::Insert(int index, const T& value)
 {
-    CheckBounds(index);
+    // Allow insertion at index == CurrSize (end of vector)
+    if (index < 0 || index > CurrSize)
+    {
+        throw std::out_of_range("Index is out of range for insertion");
+    }
+    
     // Ensure capacity
     if (CurrSize == Capacity)
     {
@@ -203,7 +214,7 @@ void MyVector<T>::PrintEntireArray() const
 {
     for (int i = 0; i < CurrSize; ++i)
     {
-        std::cout << "Index: " << i << " " << Arr[i] << std::endl;
+        std::cout << "Index: " << i << " Value: " << Arr[i] << std::endl;
     }
     std::cout.flush();
 }
@@ -212,24 +223,40 @@ template <typename T>
 void MyVector<T>::RemoveIndex(const int& index)
 {
     CheckBounds(index);
+    
+    // Use move assignment for better performance with complex types
     for (int i = index; i < CurrSize - 1; ++i)
     {
-        Arr[i] = Arr[i + 1];
+        Arr[i] = std::move(Arr[i + 1]);
     }
     --CurrSize;
 
-    // Optional shrink strategy: if size is 1/4 capacity, halve capacity
-    if (CurrSize > 0 && CurrSize == Capacity / 4)
+    // Optional shrink strategy: if size is 1/4 capacity AND capacity > 1, halve capacity
+    // Added minimum capacity check to avoid excessive resizing
+    if (CurrSize > 0 && CurrSize <= Capacity / 4 && Capacity > 1)
     {
-        Resize(Capacity / 2);
+        Resize(std::max(Capacity / 2, 1));
     }
 }
 
+// Fixed AllocateArray - now properly initializes elements
 template <typename T>
 void MyVector<T>::AllocateArray(int size)
 {
+    if (size < 0)
+    {
+        throw std::invalid_argument("Size cannot be negative");
+    }
+    
     delete[] Arr;
-    Arr = new T[size];
+    if (size > 0)
+    {
+        Arr = new T[size](); // Value-initialize all elements
+    }
+    else
+    {
+        Arr = nullptr;
+    }
     CurrSize = size;
     Capacity = size;
 }
@@ -248,10 +275,17 @@ void MyVector<T>::SwapIdx(const int& First, const int& Sec)
 template <typename T>
 void MyVector<T>::Resize(int newCapacity)
 {
-    T* tempArr = new T[newCapacity];
+    if (newCapacity < CurrSize)
+    {
+        throw std::invalid_argument("New capacity cannot be less than current size");
+    }
+    
+    T* tempArr = new T[newCapacity](); // Value-initialize new array
+    
+    // Use std::move for better performance with move-constructible types
     for (int i = 0; i < CurrSize; ++i)
     {
-        tempArr[i] = Arr[i];
+        tempArr[i] = std::move(Arr[i]);
     }
     delete[] Arr;
     Arr = tempArr;
@@ -263,10 +297,24 @@ void MyVector<T>::copyFrom(const MyVector& other)
 {
     CurrSize = other.CurrSize;
     Capacity = other.Capacity;
-    Arr = new T[Capacity];
-    std::copy_n(other.Arr, CurrSize, Arr);
+    if (Capacity > 0)
+    {
+        Arr = new T[Capacity];
+        std::copy_n(other.Arr, CurrSize, Arr);
+    }
+    else
+    {
+        Arr = nullptr;
+    }
 }
 
-// Friend Function for Output
+// Added swap method for copy-and-swap idiom
+template <typename T>
+void MyVector<T>::swap(MyVector& other) noexcept
+{
+    std::swap(Arr, other.Arr);
+    std::swap(CurrSize, other.CurrSize);
+    std::swap(Capacity, other.Capacity);
+}
 
 #endif // MYVECTOR_H
