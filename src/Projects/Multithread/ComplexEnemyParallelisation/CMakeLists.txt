@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD 23)
 #include_directories(/home/selviniah/Documents/llvm-project/libcxx/build/include/c++/v1)
 
 # Specify only source files
-add_executable(ProGen main.cpp DungeonGenerator.h Room.h SpatialGrid.h Vector2.h AStar.h)
+add_executable(ProGen main.cpp)
 
 # Easiest and fastest way is VCPKG 
 #find_package(OpenAL REQUIRED)

@@ -19,20 +19,17 @@ class Math
         return radian * 180.0f / std::numbers::pi;
     }
 
-    template <typename T>
-    static inline T VectorSizeSquared(const sf::Vector2<T>& Vector)
+    template <typename T> static inline T VectorSizeSquared(const sf::Vector2<T>& Vector)
     {
         return Vector.x * Vector.x + Vector.y * Vector.y;
     }
 
-    template <typename T>
-    static float VectorLength(sf::Vector2<T> vector)
+    template <typename T> static float VectorLength(sf::Vector2<T> vector)
     {
         return std::sqrt(VectorSizeSquared(vector));
     }
 
-    template <typename T>
-    static float LengthSquared(sf::Vector2<T> vector)
+    template <typename T> static float LengthSquared(sf::Vector2<T> vector)
     {
         return VectorSizeSquared(vector) * VectorSizeSquared(vector);
     }
@@ -51,8 +48,7 @@ class Math
 
     // length: Compute the magnitude of the vector using the formula sqrt(x^2 + y^2)
     //  Division: Divide the vector components by the magnitude to scale it to a unit vector (length 1).
-    template <typename T>
-    static sf::Vector2<T> Normalize(const sf::Vector2<T>& Vector)
+    template <typename T> static sf::Vector2<T> Normalize(const sf::Vector2<T>& Vector)
     {
         const float length = VectorLength(Vector);
         // if (length == 0) throw std::runtime_error("length is 0. Vector is: " + std::to_string(Vector.x) + " " + std::to_string(Vector.y));
@@ -81,17 +77,16 @@ class Math
     {
         // Ensure normal is normalized
         sf::Vector2f n = Normalize(normal);
-        
+
         // Calculate dot product (how much velocity goes into the surface)
         float dotProduct = Dot(velocity, n);
-        
+
         // Apply reflection formula
         return velocity - 2.0f * dotProduct * n;
     }
 
-
-    //TODO: STUDY HERE
-    //CLOCKWISE
+    // TODO: STUDY HERE
+    // CLOCKWISE
     [[nodiscard]] static sf::Vector2f RotateAroundPoint(const sf::Vector2f& pointToRotate, const float angleDegrees, const sf::Vector2f& centerOfRotation)
     {
         // Convert degrees to radians
@@ -137,7 +132,6 @@ class Math
     {
         sf::Vector2f direction = end - start;
         sf::Vector2f valueOffset = value - start;
-
         // Project valueOffset onto direction
         float projectionLength = Math::Dot(valueOffset, direction) / Math::Dot(direction, direction);
 
