@@ -1,0 +1,1 @@
+Because the algorithm is too complex, entire main thread has been blocked and input controls are barely working

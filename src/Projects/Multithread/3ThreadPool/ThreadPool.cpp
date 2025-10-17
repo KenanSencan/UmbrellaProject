@@ -11,7 +11,6 @@
                     for(;;)
                     {
                         std::function<void()> task;
-
                         {
                             std::unique_lock<std::mutex> lock(this->queueMutex);
 

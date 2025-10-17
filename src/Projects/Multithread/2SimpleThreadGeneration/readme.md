@@ -6,3 +6,9 @@ Look at: /home/selviniah/Documents/obsidian/Techincal Stuffs/Concurrency/Book/Ch
 - Each Enemy has their own thread and `HeavyWorkOptimized` will run in it's own thread. 
 
 This is perfect and simple parallelism example 
+
+# However still this project sucks
+1. Each NPC has it's own member thread variable. What if I have 1000 NPC. Will I have 1000 threads? 
+2. `HeavyWorkOptimized` creates `hardware_threads` amount of threads for each loop. Imagine we are looping for a billions of times, I will have a major thread allocation and deallocation overhead.
+
+Also `htop` couldn't capture allocated threads because they are allocated and deallocated in nanoseconds  
